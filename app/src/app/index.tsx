@@ -4,6 +4,7 @@ import { FlatList, Pressable, RefreshControl, StyleSheet, View } from 'react-nat
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { SealMark } from '@/features/identity/SealMark';
+import { useShowNoticeOnFocus } from '@/features/moderation/useShowNoticeOnFocus';
 import { CreatePostDock } from '@/features/posts/CreatePostDock';
 import { PostRow } from '@/features/posts/PostRow';
 import { PostRowGhost } from '@/features/posts/PostRowGhost';
@@ -33,6 +34,7 @@ export default function ForoScreen() {
   const feed = useFeed();
   const profileQuery = useMyProfile();
   const postMenu = usePostMenu();
+  useShowNoticeOnFocus();
   // solo mostramos el indicador cuando la persona jaló hacia abajo, no en recargas de fondo
   const [isPullRefreshing, setIsPullRefreshing] = useState(false);
 

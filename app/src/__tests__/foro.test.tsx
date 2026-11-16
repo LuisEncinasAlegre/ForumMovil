@@ -11,6 +11,8 @@ jest.mock('expo-router', () => ({ router: { push: jest.fn(), back: jest.fn() } }
 jest.mock('@/features/posts/useFeed', () => ({ useFeed: jest.fn() }));
 jest.mock('@/features/posts/usePostMenu', () => ({ usePostMenu: jest.fn() }));
 jest.mock('@/features/session/useMyProfile', () => ({ useMyProfile: jest.fn() }));
+// el aviso de moderación se prueba aparte
+jest.mock('@/features/moderation/useShowNoticeOnFocus', () => ({ useShowNoticeOnFocus: jest.fn() }));
 
 const profile = {
   id: 'usuario-1',

@@ -76,6 +76,10 @@ function RootNavigator() {
             name="reportar"
             options={{ presentation: 'formSheet', sheetAllowedDetents: 'fitToContents', sheetGrabberVisible: true }}
           />
+          <Stack.Screen
+            name="aviso"
+            options={{ presentation: 'formSheet', sheetAllowedDetents: 'fitToContents', sheetGrabberVisible: true }}
+          />
         </Stack.Protected>
         <Stack.Protected guard={!isInForum}>
           <Stack.Screen name="bienvenida" />
