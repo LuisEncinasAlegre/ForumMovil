@@ -129,7 +129,8 @@ export default function ThreadScreen() {
               content: dock.pendingReply.trim(),
               created_at: new Date().toISOString(),
               edited_at: null,
-              author: me,
+              // si pudiste responder, tu cuenta no está suspendida
+              author: { ...me, restriction: null },
             }}
             isMine
             isByPostAuthor={post?.author.id === me.id}

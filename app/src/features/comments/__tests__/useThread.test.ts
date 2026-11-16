@@ -11,7 +11,7 @@ function makeComments(count: number): ThreadComment[] {
     content: 'Texto',
     created_at: '2026-11-16T00:00:00Z',
     edited_at: null,
-    author: { id: 'usuario-1', display_name: 'farol-veloz', color: null },
+    author: { id: 'usuario-1', display_name: 'farol-veloz', color: null, restriction: null },
   }));
 }
 

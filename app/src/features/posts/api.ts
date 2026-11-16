@@ -5,13 +5,14 @@ import type { FeedPost, Post, PostDraft, PostEdit } from './types';
 
 export const FEED_PAGE_SIZE = 20;
 
-// El alias viene de profiles por la llave foránea author_id (una sola consulta).
-const POST_COLUMNS = 'id, title, content, status, created_at, edited_at, author:profiles(id, display_name, color)';
+// El alias viene de profiles por la llave foránea author_id (una sola consulta). restriction es un
+// campo calculado (public.restriction): dice si la cuenta está suspendida o baneada.
+const POST_COLUMNS = 'id, title, content, status, created_at, edited_at, author:profiles(id, display_name, color, restriction)';
 // Para leer también cuántas respuestas tiene. Las respuestas se filtran con
 // onlyVisibleReplies, porque quien responde puede leer sus propias respuestas borradas.
 // (va escrito completo: supabase-js deduce los tipos solo de un texto literal)
 const POST_WITH_REPLIES_COLUMNS =
-  'id, title, content, status, created_at, edited_at, author:profiles(id, display_name, color), comments(count)';
+  'id, title, content, status, created_at, edited_at, author:profiles(id, display_name, color, restriction), comments(count)';
 
 type PostWithReplyCount = Post & {
   comments: { count: number }[];

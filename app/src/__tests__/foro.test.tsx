@@ -31,7 +31,7 @@ const post = {
   content: 'Hace calor.',
   created_at: '2026-11-15T00:00:00Z',
   edited_at: null,
-  author: { id: 'otra-persona', display_name: 'nube-libre', color: null },
+  author: { id: 'otra-persona', display_name: 'nube-libre', color: null, restriction: null },
   replyCount: 14,
 };
 
@@ -119,7 +119,7 @@ describe('ForoScreen', () => {
   test('todas las publicaciones tienen menú y el foro le dice cuál es mía', async () => {
     const openPostMenu = jest.fn();
     jest.mocked(usePostMenu).mockReturnValue({ openPostMenu, deleteErrorMessage: null });
-    const mine = { ...post, id: 8, title: 'La mía', author: { id: 'usuario-1', display_name: 'farol-veloz', color: null } };
+    const mine = { ...post, id: 8, title: 'La mía', author: { id: 'usuario-1', display_name: 'farol-veloz', color: null, restriction: null } };
     mockFeed({ posts: [mine, post] });
     const user = userEvent.setup();
     await render(<ForoScreen />);

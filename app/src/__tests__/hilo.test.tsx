@@ -41,7 +41,7 @@ const me = {
   created_at: '2026-11-15T00:00:00Z',
 };
 
-const otherAuthor = { id: 'otra-persona', display_name: 'nube-libre', color: null };
+const otherAuthor = { id: 'otra-persona', display_name: 'nube-libre', color: null, restriction: null };
 
 const post = {
   id: 7,
@@ -69,7 +69,7 @@ const myReply = {
   content: '¿Las de los martes en el 5K?',
   created_at: '2026-11-16T00:02:00Z',
   edited_at: null,
-  author: { id: me.id, display_name: me.display_name, color: null },
+  author: { id: me.id, display_name: me.display_name, color: null, restriction: null },
 };
 
 function renderWithQueryClient(children: ReactNode) {
