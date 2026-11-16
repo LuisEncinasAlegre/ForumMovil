@@ -12,6 +12,82 @@ export type Database = {
   };
   public: {
     Tables: {
+      post_edits: {
+        Row: {
+          content: string;
+          id: number;
+          post_id: number;
+          replaced_at: string;
+          title: string;
+          written_at: string;
+        };
+        Insert: {
+          content: string;
+          id?: never;
+          post_id: number;
+          replaced_at?: string;
+          title: string;
+          written_at: string;
+        };
+        Update: {
+          content?: string;
+          id?: never;
+          post_id?: number;
+          replaced_at?: string;
+          title?: string;
+          written_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'post_edits_post_id_fkey';
+            columns: ['post_id'];
+            isOneToOne: false;
+            referencedRelation: 'posts';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      posts: {
+        Row: {
+          author_id: string;
+          content: string;
+          created_at: string;
+          deleted_at: string | null;
+          edited_at: string | null;
+          id: number;
+          status: string;
+          title: string;
+        };
+        Insert: {
+          author_id?: string;
+          content: string;
+          created_at?: string;
+          deleted_at?: string | null;
+          edited_at?: string | null;
+          id?: never;
+          status?: string;
+          title: string;
+        };
+        Update: {
+          author_id?: string;
+          content?: string;
+          created_at?: string;
+          deleted_at?: string | null;
+          edited_at?: string | null;
+          id?: never;
+          status?: string;
+          title?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'posts_author_id_fkey';
+            columns: ['author_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       profiles: {
         Row: {
           color: string | null;
