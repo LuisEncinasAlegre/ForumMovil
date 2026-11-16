@@ -9,6 +9,7 @@ import { QueryClientProvider } from '@tanstack/react-query';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 
+import { useRegisterDevice } from '@/features/moderation/useRegisterDevice';
 import { SessionProvider } from '@/features/session/SessionProvider';
 import { SplashScreenController } from '@/features/session/SplashScreenController';
 import { useMyProfile } from '@/features/session/useMyProfile';
@@ -43,6 +44,7 @@ export default function RootLayout() {
 function RootNavigator() {
   const { session, isLoading } = useSession();
   const profileQuery = useMyProfile();
+  useRegisterDevice(session?.user.id ?? null);
 
   const isReady = !isLoading && (!session || !profileQuery.isPending);
   const isInForum = !!session && !!profileQuery.data?.rules_accepted_at;
