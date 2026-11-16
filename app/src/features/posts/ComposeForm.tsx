@@ -142,7 +142,7 @@ const styles = StyleSheet.create({
     paddingVertical: space.s4,
   },
   foot: {
-    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopWidth: 1,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',

@@ -11,7 +11,8 @@ export function Rule() {
 
 const styles = StyleSheet.create({
   rule: {
-    height: StyleSheet.hairlineWidth,
+    // 1pt como en el diseño; hairlineWidth casi no se ve en pantallas densas con este color
+    height: 1,
     alignSelf: 'stretch',
   },
 });

@@ -192,6 +192,55 @@ export type Database = {
         };
         Relationships: [];
       };
+      reports: {
+        Row: {
+          comment_id: number | null;
+          created_at: string;
+          id: number;
+          post_id: number | null;
+          reason: string;
+          reporter_id: string;
+        };
+        Insert: {
+          comment_id?: number | null;
+          created_at?: string;
+          id?: never;
+          post_id?: number | null;
+          reason: string;
+          reporter_id?: string;
+        };
+        Update: {
+          comment_id?: number | null;
+          created_at?: string;
+          id?: never;
+          post_id?: number | null;
+          reason?: string;
+          reporter_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'reports_comment_id_fkey';
+            columns: ['comment_id'];
+            isOneToOne: false;
+            referencedRelation: 'comments';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'reports_post_id_fkey';
+            columns: ['post_id'];
+            isOneToOne: false;
+            referencedRelation: 'posts';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'reports_reporter_id_fkey';
+            columns: ['reporter_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
     };
     Views: {
       [_ in never]: never;

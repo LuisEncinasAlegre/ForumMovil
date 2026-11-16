@@ -1,3 +1,4 @@
+import { router } from 'expo-router';
 import { Alert } from 'react-native';
 
 import { getCommentErrorMessage } from './commentErrorMessage';
@@ -10,11 +11,12 @@ type CommentMenuOptions = {
 };
 
 type CommentMenu = {
-  openCommentMenu: (comment: ThreadComment) => void;
+  openCommentMenu: (comment: ThreadComment, isMine: boolean) => void;
   deleteErrorMessage: string | null;
 };
 
-// Menú "⋯" de tus respuestas. Igual que el de publicaciones: Alert con tres botones.
+// Menú "⋯" de las respuestas. Igual que el de publicaciones: las tuyas se editan y eliminan,
+// las de otros se reportan.
 export function useCommentMenu({ onEdit }: CommentMenuOptions): CommentMenu {
   const deleteComment = useDeleteComment();
 
@@ -25,7 +27,17 @@ export function useCommentMenu({ onEdit }: CommentMenuOptions): CommentMenu {
     ]);
   }
 
-  function openCommentMenu(comment: ThreadComment): void {
+  function openCommentMenu(comment: ThreadComment, isMine: boolean): void {
+    if (!isMine) {
+      Alert.alert('Respuesta de ' + comment.author.display_name, undefined, [
+        {
+          text: 'Reportar',
+          onPress: () => router.push({ pathname: '/reportar', params: { commentId: String(comment.id) } }),
+        },
+        { text: 'Cancelar', style: 'cancel' },
+      ]);
+      return;
+    }
     Alert.alert('Tu respuesta', undefined, [
       { text: 'Editar', onPress: () => onEdit(comment) },
       { text: 'Eliminar', style: 'destructive', onPress: () => confirmDelete(comment) },

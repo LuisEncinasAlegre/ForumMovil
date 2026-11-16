@@ -6,32 +6,44 @@ import type { FeedPost } from './types';
 import { useDeletePost } from './useDeletePost';
 
 type PostMenuOptions = {
+  // tus publicaciones se editan y eliminan; las de otros se reportan
+  isMine: boolean;
   // en el hilo, después de eliminar volvemos al foro
   onDeleted?: () => void;
 };
 
 type PostMenu = {
-  openPostMenu: (post: FeedPost, options?: PostMenuOptions) => void;
+  openPostMenu: (post: FeedPost, options: PostMenuOptions) => void;
   deleteErrorMessage: string | null;
 };
 
-// Menú "⋯" de tus publicaciones. Usamos Alert porque @expo/ui no tiene un menú para
+// Menú "⋯" de las publicaciones, en el foro y en el hilo. Usamos Alert porque @expo/ui no tiene un menú para
 // iOS y Android en el SDK 57, y Alert permite justo tres botones en Android.
 export function usePostMenu(): PostMenu {
   const deletePost = useDeletePost();
 
-  function confirmDelete(post: FeedPost, options?: PostMenuOptions): void {
+  function confirmDelete(post: FeedPost, options: PostMenuOptions): void {
     Alert.alert('¿Eliminar esta publicación?', 'Ya no aparecerá en el foro. No se puede deshacer.', [
       { text: 'Cancelar', style: 'cancel' },
       {
         text: 'Eliminar',
         style: 'destructive',
-        onPress: () => deletePost.mutate(post.id, { onSuccess: options?.onDeleted }),
+        onPress: () => deletePost.mutate(post.id, { onSuccess: options.onDeleted }),
       },
     ]);
   }
 
-  function openPostMenu(post: FeedPost, options?: PostMenuOptions): void {
+  function openPostMenu(post: FeedPost, options: PostMenuOptions): void {
+    if (!options.isMine) {
+      Alert.alert(post.title, undefined, [
+        {
+          text: 'Reportar',
+          onPress: () => router.push({ pathname: '/reportar', params: { postId: String(post.id) } }),
+        },
+        { text: 'Cancelar', style: 'cancel' },
+      ]);
+      return;
+    }
     Alert.alert(post.title, undefined, [
       {
         text: 'Editar',

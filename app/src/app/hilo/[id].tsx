@@ -131,7 +131,7 @@ export default function ThreadScreen() {
             isMine
             isByPostAuthor={post?.author.id === me.id}
             isPending
-            onOpenMenu={commentMenu.openCommentMenu}
+            onOpenMenu={(comment) => commentMenu.openCommentMenu(comment, true)}
             onOpenEdits={openCommentEdits}
           />
         ) : null}
@@ -179,7 +179,7 @@ export default function ThreadScreen() {
               comment={item}
               isMine={item.author.id === me?.id}
               isByPostAuthor={item.author.id === post.author.id}
-              onOpenMenu={commentMenu.openCommentMenu}
+              onOpenMenu={(comment) => commentMenu.openCommentMenu(comment, comment.author.id === me?.id)}
               onOpenEdits={openCommentEdits}
             />
           )}
@@ -227,14 +227,14 @@ export default function ThreadScreen() {
             <LineIcon name="back" />
           </Pressable>
         }
-        // TODO: en las publicaciones de otros, "⋯" abre Reportar (slice 05)
+        // tu publicación: editar o eliminar; la de otra persona: reportar
         right={
-          isMyPost ? (
+          post ? (
             <Pressable
               accessibilityRole="button"
-              accessibilityLabel="Opciones de tu publicación"
+              accessibilityLabel={isMyPost ? 'Opciones de tu publicación' : 'Opciones de la publicación'}
               hitSlop={space.s3}
-              onPress={() => postMenu.openPostMenu(post, { onDeleted: () => router.back() })}>
+              onPress={() => postMenu.openPostMenu(post, { isMine: isMyPost, onDeleted: () => router.back() })}>
               <MoreIcon />
             </Pressable>
           ) : null

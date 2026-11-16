@@ -16,7 +16,7 @@ export function TopBar({ left, right, hasRule = false }: TopBarProps) {
   const theme = useTheme();
 
   return (
-    <View style={[styles.bar, hasRule && { borderBottomWidth: StyleSheet.hairlineWidth, borderColor: theme.line }]}>
+    <View style={[styles.bar, hasRule && { borderBottomWidth: 1, borderColor: theme.line }]}>
       {left}
       {right}
     </View>
