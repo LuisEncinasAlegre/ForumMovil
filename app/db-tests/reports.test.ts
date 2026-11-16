@@ -43,6 +43,13 @@ async function signInAsMember(): Promise<TestUser> {
   if (error) {
     throw new Error('No se pudieron aceptar las reglas: ' + error.message);
   }
+  // Como la app: sin un teléfono registrado no se puede escribir.
+  const registered = await user.client
+    .from('user_devices')
+    .insert({ device_id: `prueba-${user.userId}`, platform: 'android' });
+  if (registered.error) {
+    throw new Error('No se pudo registrar el teléfono: ' + registered.error.message);
+  }
   return user;
 }
 

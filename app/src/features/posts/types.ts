@@ -1,7 +1,7 @@
 import type { Tables } from '@/lib/database.types';
-import type { Profile } from '@/features/session/types';
 
-export type PostAuthor = Pick<Profile, 'id' | 'display_name' | 'color'>;
+// restriction: 'suspended', 'banned' o null, calculado en la base para cada autor.
+export type PostAuthor = Pick<Tables<'profiles'>, 'id' | 'display_name' | 'color' | 'restriction'>;
 
 // Una publicación con el alias de quien la escribió (lo que devuelven publicar y editar).
 export type Post = Pick<Tables<'posts'>, 'id' | 'title' | 'content' | 'status' | 'created_at' | 'edited_at'> & {

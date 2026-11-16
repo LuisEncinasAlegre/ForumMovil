@@ -1,6 +1,9 @@
 import { router } from 'expo-router';
 import { Alert } from 'react-native';
 
+import { showBlockedAlert } from '@/features/moderation/showBlockedAlert';
+import { useMyBan } from '@/features/moderation/useMyBan';
+
 import { getPostErrorMessage } from './postErrorMessage';
 import type { FeedPost } from './types';
 import { useDeletePost } from './useDeletePost';
@@ -21,6 +24,7 @@ type PostMenu = {
 // iOS y Android en el SDK 57, y Alert permite justo tres botones en Android.
 export function usePostMenu(): PostMenu {
   const deletePost = useDeletePost();
+  const { ban } = useMyBan();
 
   function confirmDelete(post: FeedPost, options: PostMenuOptions): void {
     Alert.alert('¿Eliminar esta publicación?', 'Ya no aparecerá en el foro. No se puede deshacer.', [
@@ -34,6 +38,10 @@ export function usePostMenu(): PostMenu {
   }
 
   function openPostMenu(post: FeedPost, options: PostMenuOptions): void {
+    if (ban) {
+      showBlockedAlert(ban);
+      return;
+    }
     if (!options.isMine) {
       Alert.alert(post.title, undefined, [
         {

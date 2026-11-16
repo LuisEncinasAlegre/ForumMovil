@@ -4,6 +4,9 @@ import { FlatList, Pressable, RefreshControl, StyleSheet, View } from 'react-nat
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { SealMark } from '@/features/identity/SealMark';
+import { BlockedDock } from '@/features/moderation/BlockedDock';
+import { useMyBan } from '@/features/moderation/useMyBan';
+import { useShowBanOnFocus } from '@/features/moderation/useShowBanOnFocus';
 import { useShowNoticeOnFocus } from '@/features/moderation/useShowNoticeOnFocus';
 import { CreatePostDock } from '@/features/posts/CreatePostDock';
 import { PostRow } from '@/features/posts/PostRow';
@@ -34,7 +37,10 @@ export default function ForoScreen() {
   const feed = useFeed();
   const profileQuery = useMyProfile();
   const postMenu = usePostMenu();
-  useShowNoticeOnFocus();
+  const { ban } = useMyBan();
+  // la pantalla de suspensión va primero; el aviso espera a la siguiente vez que vuelvas al foro
+  const isShowingBan = useShowBanOnFocus();
+  useShowNoticeOnFocus(isShowingBan);
   // solo mostramos el indicador cuando la persona jaló hacia abajo, no en recargas de fondo
   const [isPullRefreshing, setIsPullRefreshing] = useState(false);
 
@@ -155,11 +161,15 @@ export default function ForoScreen() {
         }
         style={styles.screen}
       />
-      <CreatePostDock
-        // con el foro en error no hay a dónde volver después de publicar (foro-estados.elyx)
-        disabled={feed.isError && posts.length === 0}
-        onPress={() => router.push('/escribir')}
-      />
+      {ban ? (
+        <BlockedDock ban={ban} />
+      ) : (
+        <CreatePostDock
+          // con el foro en error no hay a dónde volver después de publicar (foro-estados.elyx)
+          disabled={feed.isError && posts.length === 0}
+          onPress={() => router.push('/escribir')}
+        />
+      )}
     </SafeAreaView>
   );
 }
