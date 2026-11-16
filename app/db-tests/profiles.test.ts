@@ -81,6 +81,12 @@ describe('tabla profiles', () => {
     expect(error?.code).toBe('23514'); // no cumple el check
   });
 
+  test('el hex va en minúsculas (la app siempre lo manda así)', async () => {
+    const { error } = await ana.client.from('profiles').update({ color: '#3D7FD9' }).eq('id', ana.userId);
+
+    expect(error?.code).toBe('23514');
+  });
+
   test('no puedo cambiar el color de otra persona', async () => {
     const before = await beto.client.from('profiles').select('color').eq('id', beto.userId).single();
     const newColor = before.data?.color === '#000000' ? '#ffffff' : '#000000';

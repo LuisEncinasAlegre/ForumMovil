@@ -23,6 +23,15 @@ describe('PostRow', () => {
     expect(screen.getByText('Entrego reporte mañana.')).toBeOnTheScreen();
   });
 
+  test('compacta (Perfil): sin el extracto', async () => {
+    await render(
+      <PostRow post={post} isMine isCompact onOpen={jest.fn()} onOpenMenu={jest.fn()} onOpenEdits={jest.fn()} />,
+    );
+
+    expect(screen.getByText('¿Dónde imprimen barato?')).toBeOnTheScreen();
+    expect(screen.queryByText('Entrego reporte mañana.')).toBeNull();
+  });
+
   test('sin editar no muestra "editado"', async () => {
     await render(<PostRow post={post} isMine={false} onOpen={jest.fn()} onOpenMenu={jest.fn()} onOpenEdits={jest.fn()} />);
 

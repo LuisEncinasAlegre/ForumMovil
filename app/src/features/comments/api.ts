@@ -16,6 +16,20 @@ export class CommentNotEditableError extends Error {
   }
 }
 
+// Cuántas respuestas tuyas siguen visibles, para Perfil. head no trae filas.
+export async function countMyComments(userId: string): Promise<number> {
+  const { count, error } = await supabase
+    .from('comments')
+    .select('id', { count: 'exact', head: true })
+    .eq('author_id', userId)
+    .eq('status', 'visible')
+    .is('deleted_at', null);
+  if (error) {
+    throw error;
+  }
+  return count ?? 0;
+}
+
 // Las respuestas más viejas primero, como una conversación. afterId es el id de la última que ya se mostró.
 export async function fetchCommentsPage(postId: number, afterId: number | null): Promise<ThreadComment[]> {
   // el autor también puede leer sus respuestas borradas, por eso filtramos aquí

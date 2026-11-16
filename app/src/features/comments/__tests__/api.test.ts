@@ -2,6 +2,7 @@ import { supabase } from '@/lib/supabase';
 
 import {
   CommentNotEditableError,
+  countMyComments,
   createComment,
   deleteComment,
   fetchComment,
@@ -16,7 +17,7 @@ jest.mock('@/lib/supabase', () => ({
 
 const mockedSupabase = jest.mocked(supabase, { shallow: false });
 
-type QueryResult = { data: unknown; error: unknown };
+type QueryResult = { data: unknown; error: unknown; count?: number | null };
 
 type QueryChain = {
   select: jest.Mock;
@@ -154,5 +155,24 @@ describe('fetchCommentEdits', () => {
     await expect(fetchCommentEdits(3)).resolves.toBe(edits);
     expect(chain.eq).toHaveBeenCalledWith('comment_id', 3);
     expect(chain.order).toHaveBeenCalledWith('id', { ascending: false });
+  });
+});
+
+describe('countMyComments', () => {
+  test('cuenta tus respuestas visibles sin traer filas', async () => {
+    const chain = mockQueryResult({ data: null, error: null, count: 19 });
+
+    await expect(countMyComments('usuario-1')).resolves.toBe(19);
+    expect(chain.select).toHaveBeenCalledWith('id', { count: 'exact', head: true });
+    expect(chain.eq).toHaveBeenCalledWith('author_id', 'usuario-1');
+    expect(chain.eq).toHaveBeenCalledWith('status', 'visible');
+    expect(chain.is).toHaveBeenCalledWith('deleted_at', null);
+  });
+
+  test('lanza el error de Supabase', async () => {
+    const error = { code: '42501', message: 'permission denied' };
+    mockQueryResult({ data: null, error, count: null });
+
+    await expect(countMyComments('usuario-1')).rejects.toBe(error);
   });
 });

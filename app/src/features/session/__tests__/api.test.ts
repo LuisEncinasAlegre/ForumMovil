@@ -1,6 +1,6 @@
 import { supabase } from '@/lib/supabase';
 
-import { acceptRules, fetchMyProfile, forgetSession, startAnonymousSession } from '../api';
+import { acceptRules, fetchMyProfile, forgetSession, startAnonymousSession, updateMyColor } from '../api';
 
 jest.mock('@/lib/supabase', () => ({
   supabase: {
@@ -96,6 +96,23 @@ describe('acceptRules', () => {
     mockQueryResult({ data: null, error: new Error('permiso denegado') });
 
     await expect(acceptRules('usuario-1')).rejects.toThrow('permiso denegado');
+  });
+});
+
+describe('updateMyColor', () => {
+  test('guarda el color en tu perfil y lo devuelve', async () => {
+    const updated = { ...profile, color: '#8aaad2' };
+    const chain = mockQueryResult({ data: updated, error: null });
+
+    await expect(updateMyColor('usuario-1', '#8aaad2')).resolves.toEqual(updated);
+    expect(chain.update).toHaveBeenCalledWith({ color: '#8aaad2' });
+    expect(chain.eq).toHaveBeenCalledWith('id', 'usuario-1');
+  });
+
+  test('lanza el error de Supabase', async () => {
+    mockQueryResult({ data: null, error: { code: '23514', message: 'check' } });
+
+    await expect(updateMyColor('usuario-1', 'rojo')).rejects.toEqual({ code: '23514', message: 'check' });
   });
 });
 

@@ -108,8 +108,18 @@ export default function ForoScreen() {
             OpenPriv
           </Text>
         }
-        // TODO: el sello abre la pantalla Tú (slice de identidad)
-        right={profileQuery.data ? <SealMark profile={profileQuery.data} size="small" /> : null}
+        right={
+          profileQuery.data ? (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Tu perfil"
+              // el sello mide 32: así el área para tocar llega a 44
+              hitSlop={space.s2}
+              onPress={() => router.push('/perfil')}>
+              <SealMark profile={profileQuery.data} size="small" />
+            </Pressable>
+          ) : null
+        }
       />
       {notice ? (
         <Text variant="small" color="ink2" style={styles.notice} accessibilityRole="alert">

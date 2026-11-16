@@ -16,11 +16,13 @@ type PostRowProps = {
   onOpen: (post: FeedPost) => void;
   onOpenMenu: (post: FeedPost) => void;
   onOpenEdits: (post: FeedPost) => void;
+  // en Perfil la fila va sin el extracto (postRowCompact)
+  isCompact?: boolean;
 };
 
 // Fila del foro (components/post-row.elyx). Sin tarjeta: tipografía y una línea fina.
 // Toda la fila abre el hilo; "editado" y "⋯" tienen su propio toque encima.
-export function PostRow({ post, isMine, onOpen, onOpenMenu, onOpenEdits }: PostRowProps) {
+export function PostRow({ post, isMine, onOpen, onOpenMenu, onOpenEdits, isCompact = false }: PostRowProps) {
   // la hora es cuándo se publicó, aunque después se haya editado
   const timeAgo = formatTimeAgo(post.created_at);
 
@@ -60,9 +62,11 @@ export function PostRow({ post, isMine, onOpen, onOpenMenu, onOpenEdits }: PostR
       <Text variant="bodyLarge" weight="semiBold">
         {post.title}
       </Text>
-      <Text variant="ui" color="ink2" numberOfLines={3}>
-        {post.content}
-      </Text>
+      {isCompact ? null : (
+        <Text variant="ui" color="ink2" numberOfLines={3}>
+          {post.content}
+        </Text>
+      )}
       <View style={styles.foot}>
         {/* sin respuestas no mostramos nada */}
         {post.replyCount > 0 ? (

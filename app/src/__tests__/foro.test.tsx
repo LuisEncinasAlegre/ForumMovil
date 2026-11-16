@@ -124,4 +124,13 @@ describe('ForoScreen', () => {
     expect(openPostMenu).toHaveBeenNthCalledWith(1, mine, { isMine: true });
     expect(openPostMenu).toHaveBeenNthCalledWith(2, post, { isMine: false });
   });
+
+  test('tu sello abre tu perfil', async () => {
+    mockFeed({ posts: [] });
+    const user = userEvent.setup();
+    await render(<ForoScreen />);
+
+    await user.press(screen.getByRole('button', { name: 'Tu perfil' }));
+    expect(router.push).toHaveBeenCalledWith('/perfil');
+  });
 });
