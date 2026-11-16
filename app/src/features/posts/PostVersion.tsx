@@ -6,20 +6,23 @@ import { Text } from '@/ui/Text';
 
 type PostVersionProps = {
   label: string;
-  title: string;
+  // las versiones de una respuesta no tienen título
+  title?: string;
   content: string;
 };
 
-// Una versión en la hoja de Versiones (screens/ediciones.elyx): cuándo, título y texto completo.
+// Una versión en la hoja de Versiones (screens/ediciones.elyx): cuándo, título (si tiene) y texto completo.
 export function PostVersion({ label, title, content }: PostVersionProps) {
   return (
     <View style={styles.version}>
       <Text variant="small" weight="medium" color="ink3">
         {label}
       </Text>
-      <Text variant="bodyLarge" weight="semiBold">
-        {title}
-      </Text>
+      {title ? (
+        <Text variant="bodyLarge" weight="semiBold">
+          {title}
+        </Text>
+      ) : null}
       <Text variant="ui" color="ink2">
         {content}
       </Text>

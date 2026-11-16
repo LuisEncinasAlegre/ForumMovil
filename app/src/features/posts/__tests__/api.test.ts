@@ -62,11 +62,14 @@ const post = {
 
 const databaseError = { code: '42501', message: 'permission denied' };
 
+// Así llega de PostgREST una publicación con su conteo de respuestas.
+const postRowWithCount = { ...post, comments: [{ count: 3 }] };
+
 describe('fetchFeedPage', () => {
   test('la primera página no lleva cursor y solo trae visibles sin borrar', async () => {
-    const chain = mockQueryResult({ data: [post], error: null });
+    const chain = mockQueryResult({ data: [postRowWithCount], error: null });
 
-    await expect(fetchFeedPage(null)).resolves.toEqual([post]);
+    await expect(fetchFeedPage(null)).resolves.toEqual([{ ...post, replyCount: 3 }]);
     expect(chain.lt).not.toHaveBeenCalled();
     expect(chain.eq).toHaveBeenCalledWith('status', 'visible');
     expect(chain.is).toHaveBeenCalledWith('deleted_at', null);
@@ -93,6 +96,15 @@ describe('fetchPost', () => {
     mockQueryResult({ data: null, error: null });
 
     await expect(fetchPost(7)).resolves.toBeNull();
+  });
+
+  test('cuenta solo las respuestas visibles y sin borrar', async () => {
+    const chain = mockQueryResult({ data: postRowWithCount, error: null });
+
+    await expect(fetchPost(7)).resolves.toEqual({ ...post, replyCount: 3 });
+    expect(chain.select).toHaveBeenCalledWith(expect.stringContaining('comments(count)'));
+    expect(chain.eq).toHaveBeenCalledWith('comments.status', 'visible');
+    expect(chain.is).toHaveBeenCalledWith('comments.deleted_at', null);
   });
 });
 

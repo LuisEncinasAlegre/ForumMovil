@@ -1,12 +1,27 @@
 // Único archivo que habla con las tablas posts y post_edits. Si Supabase devuelve error, lo lanzamos.
 import { supabase } from '@/lib/supabase';
 
-import type { FeedPost, PostDraft, PostEdit } from './types';
+import type { FeedPost, Post, PostDraft, PostEdit } from './types';
 
 export const FEED_PAGE_SIZE = 20;
 
 // El alias viene de profiles por la llave foránea author_id (una sola consulta).
 const POST_COLUMNS = 'id, title, content, created_at, edited_at, author:profiles(id, display_name, color)';
+// Para leer también cuántas respuestas tiene. Las respuestas se filtran con
+// onlyVisibleReplies, porque quien responde puede leer sus propias respuestas borradas.
+// (va escrito completo: supabase-js deduce los tipos solo de un texto literal)
+const POST_WITH_REPLIES_COLUMNS =
+  'id, title, content, created_at, edited_at, author:profiles(id, display_name, color), comments(count)';
+
+type PostWithReplyCount = Post & {
+  comments: { count: number }[];
+};
+
+// PostgREST devuelve el conteo como [{ count: n }]; la app solo quiere el número.
+function toFeedPost(row: PostWithReplyCount): FeedPost {
+  const { comments, ...post } = row;
+  return { ...post, replyCount: comments[0]?.count ?? 0 };
+}
 
 // La publicación se borró, la ocultó moderación o no es tuya: el update no encontró la fila.
 export class PostNotEditableError extends Error {
@@ -19,7 +34,13 @@ export class PostNotEditableError extends Error {
 // Las publicaciones más nuevas primero. beforeId es el id de la última que ya se mostró.
 export async function fetchFeedPage(beforeId: number | null): Promise<FeedPost[]> {
   // el autor también puede leer sus borradas y ocultas, por eso filtramos aquí
-  let query = supabase.from('posts').select(POST_COLUMNS).eq('status', 'visible').is('deleted_at', null);
+  let query = supabase
+    .from('posts')
+    .select(POST_WITH_REPLIES_COLUMNS)
+    .eq('status', 'visible')
+    .is('deleted_at', null)
+    .eq('comments.status', 'visible')
+    .is('comments.deleted_at', null);
   if (beforeId !== null) {
     query = query.lt('id', beforeId);
   }
@@ -27,25 +48,27 @@ export async function fetchFeedPage(beforeId: number | null): Promise<FeedPost[]
   if (error) {
     throw error;
   }
-  return data;
+  return data.map(toFeedPost);
 }
 
 // null si ya no existe o ya no se puede ver.
 export async function fetchPost(postId: number): Promise<FeedPost | null> {
   const { data, error } = await supabase
     .from('posts')
-    .select(POST_COLUMNS)
+    .select(POST_WITH_REPLIES_COLUMNS)
     .eq('id', postId)
     .eq('status', 'visible')
     .is('deleted_at', null)
+    .eq('comments.status', 'visible')
+    .is('comments.deleted_at', null)
     .maybeSingle();
   if (error) {
     throw error;
   }
-  return data;
+  return data ? toFeedPost(data) : null;
 }
 
-export async function createPost(draft: PostDraft): Promise<FeedPost> {
+export async function createPost(draft: PostDraft): Promise<Post> {
   // autor, estado y fecha los pone la base de datos
   const { data, error } = await supabase
     .from('posts')
@@ -58,7 +81,7 @@ export async function createPost(draft: PostDraft): Promise<FeedPost> {
   return data;
 }
 
-export async function updatePost(postId: number, draft: PostDraft): Promise<FeedPost> {
+export async function updatePost(postId: number, draft: PostDraft): Promise<Post> {
   // un trigger guarda la versión anterior y pone edited_at
   const { data, error } = await supabase
     .from('posts')
