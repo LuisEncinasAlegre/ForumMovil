@@ -1,5 +1,6 @@
 import { StyleSheet, View } from 'react-native';
 
+import { COMMUNITY_RULES } from '@/features/rules/communityRules';
 import { AliasCard } from '@/features/session/AliasCard';
 import { useWelcome } from '@/features/session/useWelcome';
 import { space } from '@/theme/tokens';
@@ -7,12 +8,6 @@ import { Button } from '@/ui/Button';
 import { Rule } from '@/ui/Rule';
 import { Screen } from '@/ui/Screen';
 import { Text } from '@/ui/Text';
-
-const communityRules = [
-  'Ideas sí, personas no. No ataques a nadie.',
-  'Nada de spam ni datos privados de otros.',
-  'Si algo cruza la línea, repórtalo. Se revisa.',
-];
 
 export default function WelcomeScreen() {
   const welcome = useWelcome();
@@ -55,15 +50,15 @@ export default function WelcomeScreen() {
       </View>
 
       <View style={styles.section}>
-        {communityRules.map((rule, index) => (
-          <View key={rule}>
+        {COMMUNITY_RULES.map((rule, index) => (
+          <View key={rule.title}>
             <Rule />
             <View style={styles.rule}>
               <Text variant="small" color="ink3">
                 {String(index + 1).padStart(2, '0')}
               </Text>
               <Text variant="ui" style={styles.ruleText}>
-                {rule}
+                {rule.title}
               </Text>
             </View>
           </View>
