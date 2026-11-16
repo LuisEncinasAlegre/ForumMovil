@@ -4,7 +4,7 @@ import type { Profile } from '@/features/session/types';
 export type PostAuthor = Pick<Profile, 'id' | 'display_name' | 'color'>;
 
 // Una publicación con el alias de quien la escribió (lo que devuelven publicar y editar).
-export type Post = Pick<Tables<'posts'>, 'id' | 'title' | 'content' | 'created_at' | 'edited_at'> & {
+export type Post = Pick<Tables<'posts'>, 'id' | 'title' | 'content' | 'status' | 'created_at' | 'edited_at'> & {
   author: PostAuthor;
 };
 

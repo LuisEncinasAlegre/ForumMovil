@@ -175,12 +175,12 @@ describe('fetchPostEdits', () => {
 });
 
 describe('fetchMyPostsPage', () => {
-  test('solo tus publicaciones visibles, con el mismo orden y tamaño que el foro', async () => {
+  test('tus publicaciones, también las ocultas, con el mismo orden y tamaño que el foro', async () => {
     const chain = mockQueryResult({ data: [postRowWithCount], error: null });
 
     await expect(fetchMyPostsPage('usuario-1', null)).resolves.toEqual([{ ...post, replyCount: 3 }]);
     expect(chain.eq).toHaveBeenCalledWith('author_id', 'usuario-1');
-    expect(chain.eq).toHaveBeenCalledWith('status', 'visible');
+    expect(chain.eq).not.toHaveBeenCalledWith('status', 'visible');
     expect(chain.is).toHaveBeenCalledWith('deleted_at', null);
     expect(chain.order).toHaveBeenCalledWith('id', { ascending: false });
     expect(chain.limit).toHaveBeenCalledWith(20);
