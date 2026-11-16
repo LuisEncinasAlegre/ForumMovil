@@ -53,7 +53,15 @@ type AuthorAction = {
   comment_id: number | null;
   categoria: string | null;
   nota: string | null;
+  termina: string | null;
   fecha: string;
+};
+
+type AuthorBan = {
+  motivo: string;
+  desde: string;
+  termina: string | null;
+  quitado?: string | null;
 };
 
 export type AuthorDetail = {
@@ -64,8 +72,18 @@ export type AuthorDetail = {
   respuestas: number;
   respuestas_ocultas: number;
   advertencias: number;
+  dispositivos: number;
+  baneo_activo: AuthorBan | null;
+  bloqueado_por_telefono: boolean;
+  baneos: AuthorBan[];
   avisos: AuthorNotice[];
   acciones_recientes: AuthorAction[];
+};
+
+export type BanResult = {
+  alias: string;
+  termina: string | null;
+  reemplazo_suspension: boolean;
 };
 
 export type Summary = {
@@ -96,6 +114,8 @@ const actionLabels: Record<string, string> = {
   hide: 'ocultado',
   restore: 'restaurado',
   auto_hide: 'ocultado por 10 reportes',
+  ban: 'suspendido o baneado',
+  unban: 'baneo quitado',
 };
 
 const PREVIEW_LENGTH = 280;
@@ -126,11 +146,18 @@ function formatCounts(counts: Record<string, number>, labels: Record<string, str
   return entries.map(([key, total]) => `${labels[key] ?? key}: ${total}`).join(', ');
 }
 
-function targetLabel(postId: number | null, commentId: number | null): string {
+function targetLabel(postId: number | null, commentId: number | null): string | null {
   if (commentId !== null) {
     return `respuesta comment_id=${commentId}`;
   }
-  return `publicación post_id=${postId}`;
+  if (postId !== null) {
+    return `publicación post_id=${postId}`;
+  }
+  return null;
+}
+
+function banEndLabel(endsAt: string | null): string {
+  return endsAt === null ? 'sin fecha de fin' : `hasta ${formatDate(endsAt)}`;
 }
 
 export function formatPendingList(items: PendingItem[], limit: number): string {
@@ -216,21 +243,43 @@ export function formatAuthor(author: AuthorDetail): string {
     `- Publicaciones: ${author.publicaciones} (${author.publicaciones_ocultas} ocultas)`,
     `- Respuestas: ${author.respuestas} (${author.respuestas_ocultas} ocultas)`,
     `- Advertencias activas: ${author.advertencias}`,
+    `- Teléfonos registrados: ${author.dispositivos}`,
   ];
+
+  if (author.baneo_activo) {
+    const ban = author.baneo_activo;
+    lines.push(`- Baneo vigente desde ${formatDate(ban.desde)}, ${banEndLabel(ban.termina)}: ${userText(ban.motivo)}`);
+  } else if (author.bloqueado_por_telefono) {
+    lines.push('- No puede escribir: usa un teléfono de otra cuenta baneada.');
+  } else {
+    lines.push('- Sin baneo vigente.');
+  }
+
+  if (author.baneos.length > 0) {
+    lines.push('', '## Suspensiones y baneos');
+    for (const ban of author.baneos) {
+      const lifted = ban.quitado ? `, quitado ${formatDate(ban.quitado)}` : '';
+      lines.push(`- ${formatDate(ban.desde)}, ${banEndLabel(ban.termina)}${lifted}: ${userText(ban.motivo)}`);
+    }
+  }
 
   if (author.avisos.length > 0) {
     lines.push('', '## Avisos que ha recibido');
     for (const notice of author.avisos) {
       const state = notice.retirado ? 'retirado' : notice.cuenta ? 'cuenta' : 'no cuenta (automático)';
-      lines.push(`- ${formatDate(notice.fecha)}, ${targetLabel(notice.post_id, notice.comment_id)}, ${notice.categoria}, ${state}: ${notice.mensaje}`);
+      const target = targetLabel(notice.post_id, notice.comment_id) ?? 'contenido borrado';
+      lines.push(`- ${formatDate(notice.fecha)}, ${target}, ${notice.categoria}, ${state}: ${notice.mensaje}`);
     }
   }
 
   if (author.acciones_recientes.length > 0) {
     lines.push('', '## Acciones recientes de moderación');
     for (const action of author.acciones_recientes) {
-      const details = [action.categoria, action.nota].filter((value) => value !== null).join(', ');
-      lines.push(`- ${formatDate(action.fecha)}, ${actionLabels[action.accion] ?? action.accion}, ${targetLabel(action.post_id, action.comment_id)}${details ? `: ${details}` : ''}`);
+      const target = targetLabel(action.post_id, action.comment_id);
+      const until = action.accion === 'ban' ? banEndLabel(action.termina) : null;
+      const details = [action.categoria, until, action.nota].filter((value) => value !== null).join(', ');
+      const label = actionLabels[action.accion] ?? action.accion;
+      lines.push(`- ${formatDate(action.fecha)}, ${label}${target ? `, ${target}` : ''}${details ? `: ${details}` : ''}`);
     }
   }
 
@@ -247,4 +296,12 @@ export function formatSummary(summary: Summary): string {
     `- Pendientes abiertos ahora: ${summary.pendientes_abiertos}`,
     `- Acciones: ${formatCounts(summary.acciones, actionLabels)}`,
   ].join('\n');
+}
+
+export function formatBanResult(result: BanResult): string {
+  if (result.termina === null) {
+    const replaced = result.reemplazo_suspension ? ' Reemplaza la suspensión que tenía.' : '';
+    return `Listo: ${result.alias} está baneado sin fecha de fin, igual que sus teléfonos.${replaced} Verá el motivo la próxima vez que abra la app.`;
+  }
+  return `Listo: ${result.alias} está suspendido ${banEndLabel(result.termina)}, igual que sus teléfonos. Verá el motivo la próxima vez que abra la app.`;
 }

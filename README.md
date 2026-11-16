@@ -90,9 +90,11 @@ claude mcp add --transport http moderacion https://<ref>.supabase.co/functions/v
 ```
 
 También sirve el MCP Inspector (`npx @modelcontextprotocol/inspector`), sin IA. Herramientas:
-`ver_pendientes`, `ver_contenido`, `ver_autor`, `resumen`, `marcar_revisado`, `ocultar` y
-`restaurar`. Deja activada la aprobación de cada herramienta: el texto de los usuarios podría traer
-instrucciones, y `ocultar` y `restaurar` cambian lo que ve la gente.
+`ver_pendientes`, `ver_contenido`, `ver_autor`, `resumen`, `marcar_revisado`, `ocultar`,
+`restaurar`, `suspender`, `banear` y `quitar_ban`. Deja activada la aprobación de cada herramienta: el
+texto de los usuarios podría traer instrucciones, y todas menos las de lectura (`ver_*` y `resumen`)
+cambian lo que ve o puede hacer la gente. Una suspensión o un baneo alcanza también a los teléfonos
+que usó esa cuenta.
 
 ## Tipos de la base de datos
 

@@ -1,9 +1,9 @@
 import { supabase } from '@/lib/supabase';
 
-import { countActiveWarnings, fetchUnseenNotices, markNoticeSeen } from '../api';
+import { countActiveWarnings, fetchMyActiveBan, fetchUnseenNotices, markNoticeSeen, registerDevice } from '../api';
 
 jest.mock('@/lib/supabase', () => ({
-  supabase: { from: jest.fn() },
+  supabase: { from: jest.fn(), rpc: jest.fn() },
 }));
 
 const mockedSupabase = jest.mocked(supabase, { shallow: false });
@@ -14,6 +14,7 @@ type QueryResult = { data?: unknown; count?: number | null; error: unknown };
 type QueryChain = {
   select: jest.Mock;
   update: jest.Mock;
+  upsert: jest.Mock;
   eq: jest.Mock;
   is: jest.Mock;
   order: jest.Mock;
@@ -24,6 +25,7 @@ function mockQuery(result: QueryResult): QueryChain {
   const chain: QueryChain = {
     select: jest.fn(() => chain),
     update: jest.fn(() => chain),
+    upsert: jest.fn(() => chain),
     eq: jest.fn(() => chain),
     is: jest.fn(() => chain),
     order: jest.fn(() => chain),
@@ -81,5 +83,51 @@ describe('markNoticeSeen', () => {
     mockQuery({ error });
 
     await expect(markNoticeSeen(5)).rejects.toBe(error);
+  });
+});
+
+describe('registerDevice', () => {
+  test('registra el teléfono sin fallar si ya estaba', async () => {
+    const chain = mockQuery({ error: null });
+
+    await registerDevice({ deviceId: 'abc12345', platform: 'android' });
+
+    expect(mockedSupabase.from).toHaveBeenCalledWith('user_devices');
+    expect(chain.upsert).toHaveBeenCalledWith(
+      { device_id: 'abc12345', platform: 'android' },
+      { ignoreDuplicates: true },
+    );
+  });
+
+  test('los errores se lanzan', async () => {
+    const error = { code: '23514', message: 'check' };
+    mockQuery({ error });
+
+    await expect(registerDevice({ deviceId: 'x', platform: 'ios' })).rejects.toBe(error);
+  });
+});
+
+describe('fetchMyActiveBan', () => {
+  test('sin baneo devuelve null', async () => {
+    mockedSupabase.rpc.mockResolvedValue({ data: [], error: null } as never);
+
+    expect(await fetchMyActiveBan()).toBeNull();
+    expect(mockedSupabase.rpc).toHaveBeenCalledWith('get_my_active_ban');
+  });
+
+  test('devuelve el motivo y la fecha de fin, que puede ser null', async () => {
+    mockedSupabase.rpc.mockResolvedValue({
+      data: [{ reason: 'Insultos.', ends_at: null }],
+      error: null,
+    } as never);
+
+    expect(await fetchMyActiveBan()).toEqual({ reason: 'Insultos.', endsAt: null });
+  });
+
+  test('los errores se lanzan', async () => {
+    const error = { code: 'PGRST301', message: 'sin red' };
+    mockedSupabase.rpc.mockResolvedValue({ data: null, error } as never);
+
+    await expect(fetchMyActiveBan()).rejects.toBe(error);
   });
 });

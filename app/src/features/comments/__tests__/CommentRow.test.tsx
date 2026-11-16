@@ -9,7 +9,7 @@ const comment: ThreadComment = {
   content: 'Siguen, a las 4.',
   created_at: new Date(Date.now() - 2 * 60 * 1000).toISOString(),
   edited_at: null,
-  author: { id: 'usuario-1', display_name: 'farol-veloz', color: null },
+  author: { id: 'usuario-1', display_name: 'farol-veloz', color: null, restriction: null },
 };
 
 describe('CommentRow', () => {

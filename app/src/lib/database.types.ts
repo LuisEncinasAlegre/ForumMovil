@@ -239,6 +239,7 @@ export type Database = {
           display_name: string;
           id: string;
           rules_accepted_at: string | null;
+          restriction: string | null;
         };
         Insert: {
           color?: string | null;
@@ -305,12 +306,102 @@ export type Database = {
           },
         ];
       };
+      user_devices: {
+        Row: {
+          device_id: string;
+          first_seen: string;
+          platform: string;
+          user_id: string;
+        };
+        Insert: {
+          device_id: string;
+          first_seen?: string;
+          platform: string;
+          user_id?: string;
+        };
+        Update: {
+          device_id?: string;
+          first_seen?: string;
+          platform?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'user_devices_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
     };
     Views: {
       [_ in never]: never;
     };
     Functions: {
-      [_ in never]: never;
+      get_my_active_ban: {
+        Args: never;
+        Returns: {
+          ends_at: string;
+          reason: string;
+        }[];
+      };
+      mod_ban: {
+        Args: {
+          alias: string;
+          hours?: number;
+          moderator_id: number;
+          reason: string;
+        };
+        Returns: Json;
+      };
+      mod_get_author: { Args: { alias: string }; Returns: Json };
+      mod_get_content: {
+        Args: { target_comment_id: number; target_post_id: number };
+        Returns: Json;
+      };
+      mod_hide: {
+        Args: {
+          category: string;
+          message: string;
+          moderator_id: number;
+          target_comment_id: number;
+          target_post_id: number;
+        };
+        Returns: undefined;
+      };
+      mod_list_pending: { Args: { max_items?: number }; Returns: Json };
+      mod_mark_reviewed: {
+        Args: {
+          moderator_id: number;
+          note?: string;
+          target_comment_id: number;
+          target_post_id: number;
+        };
+        Returns: undefined;
+      };
+      mod_restore: {
+        Args: {
+          moderator_id: number;
+          note?: string;
+          target_comment_id: number;
+          target_post_id: number;
+        };
+        Returns: undefined;
+      };
+      mod_summary: { Args: { since: string }; Returns: Json };
+      mod_unban: {
+        Args: { alias: string; moderator_id: number; note?: string };
+        Returns: undefined;
+      };
+      mod_whoami: { Args: { token: string }; Returns: number };
+      restriction: {
+        Args: { '': Database['public']['Tables']['profiles']['Row'] };
+        Returns: {
+          error: true;
+        } & 'the function public.restriction with parameter or with a single unnamed json/jsonb parameter, but no matches were found in the schema cache';
+      };
     };
     Enums: {
       [_ in never]: never;
@@ -329,12 +420,12 @@ export type Tables<
   DefaultSchemaTableNameOrOptions extends
     | keyof (DefaultSchema['Tables'] & DefaultSchema['Views'])
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals;
   }
     ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'] &
         DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Views'])
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals;
 }
@@ -352,15 +443,38 @@ export type Tables<
       : never
     : never;
 
-export type TablesUpdate<
+export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
-    | keyof DefaultSchema['Tables']
-    | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+    keyof DefaultSchema['Tables'] | { schema: keyof DatabaseWithoutInternals },
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals;
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables']
-    : never = never,
+    : never) = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals;
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'][TableName] extends {
+      Insert: infer I;
+    }
+    ? I
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema['Tables']
+    ? DefaultSchema['Tables'][DefaultSchemaTableNameOrOptions] extends {
+        Insert: infer I;
+      }
+      ? I
+      : never
+    : never;
+
+export type TablesUpdate<
+  DefaultSchemaTableNameOrOptions extends
+    keyof DefaultSchema['Tables'] | { schema: keyof DatabaseWithoutInternals },
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals;
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables']
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals;
 }
@@ -376,3 +490,41 @@ export type TablesUpdate<
       ? U
       : never
     : never;
+
+export type Enums<
+  DefaultSchemaEnumNameOrOptions extends
+    keyof DefaultSchema['Enums'] | { schema: keyof DatabaseWithoutInternals },
+  EnumName extends (DefaultSchemaEnumNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals;
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions['schema']]['Enums']
+    : never) = never,
+> = DefaultSchemaEnumNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals;
+}
+  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions['schema']]['Enums'][EnumName]
+  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema['Enums']
+    ? DefaultSchema['Enums'][DefaultSchemaEnumNameOrOptions]
+    : never;
+
+export type CompositeTypes<
+  PublicCompositeTypeNameOrOptions extends
+    keyof DefaultSchema['CompositeTypes'] | { schema: keyof DatabaseWithoutInternals },
+  CompositeTypeName extends (PublicCompositeTypeNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals;
+  }
+    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions['schema']]['CompositeTypes']
+    : never) = never,
+> = PublicCompositeTypeNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals;
+}
+  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions['schema']]['CompositeTypes'][CompositeTypeName]
+  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema['CompositeTypes']
+    ? DefaultSchema['CompositeTypes'][PublicCompositeTypeNameOrOptions]
+    : never;
+
+export const Constants = {
+  public: {
+    Enums: {},
+  },
+} as const;

@@ -2,15 +2,28 @@ import { createMcpHandler, McpServer } from '@modelcontextprotocol/server';
 import { callModerationFunction } from './adminClient.ts';
 import {
   type AuthorDetail,
+  type BanResult,
   type ContentDetail,
   formatAuthor,
+  formatBanResult,
   formatContent,
   formatPendingList,
   formatSummary,
   type PendingItem,
   type Summary,
 } from './format.ts';
-import { marcarRevisado, ocultar, resumen, restaurar, verAutor, verContenido, verPendientes } from './tools.ts';
+import {
+  banear,
+  marcarRevisado,
+  ocultar,
+  quitarBan,
+  restaurar,
+  resumen,
+  suspender,
+  verAutor,
+  verContenido,
+  verPendientes,
+} from './tools.ts';
 
 type ToolResult = { content: { type: 'text'; text: string }[] };
 
@@ -113,6 +126,35 @@ function buildServer(moderatorId: number): McpServer {
         note: nota ?? null,
       });
       return textResult('Listo: vuelve a estar visible y su aviso ya no cuenta.');
+    },
+  );
+
+  const banAnnotations = { readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: false };
+
+  server.registerTool(
+    'suspender',
+    { ...suspender, annotations: banAnnotations },
+    async ({ alias, motivo, horas }) => {
+      const result = await callModerationFunction('mod_ban', { moderator_id: moderatorId, alias, reason: motivo, hours: horas });
+      return textResult(formatBanResult(result as BanResult));
+    },
+  );
+
+  server.registerTool(
+    'banear',
+    { ...banear, annotations: banAnnotations },
+    async ({ alias, motivo }) => {
+      const result = await callModerationFunction('mod_ban', { moderator_id: moderatorId, alias, reason: motivo, hours: null });
+      return textResult(formatBanResult(result as BanResult));
+    },
+  );
+
+  server.registerTool(
+    'quitar_ban',
+    { ...quitarBan, annotations: banAnnotations },
+    async ({ alias, nota }) => {
+      await callModerationFunction('mod_unban', { moderator_id: moderatorId, alias, note: nota ?? null });
+      return textResult(`Listo: ${alias} y sus teléfonos vuelven a poder escribir.`);
     },
   );
 
