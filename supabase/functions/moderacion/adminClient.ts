@@ -32,6 +32,10 @@ const databaseErrorMessages: Record<string, string> = {
   categoria_invalida: 'La categoría debe ser spam, acoso, inapropiado u otro.',
   mensaje_invalido: 'El mensaje para el autor debe tener entre 1 y 300 caracteres.',
   alias_no_existe: 'No hay nadie con ese alias. Copia el alias tal como sale en ver_pendientes.',
+  motivo_invalido: 'El motivo debe tener entre 1 y 300 caracteres.',
+  duracion_invalida: 'La suspensión va de 1 a 720 horas (30 días).',
+  ya_tiene_baneo: 'Ya tiene una suspensión o un baneo vigente. Usa quitar_ban primero si quieres cambiarlo.',
+  sin_baneo: 'No tiene ninguna suspensión ni baneo vigente.',
 };
 
 export async function callModerationFunction(name: string, args: Record<string, unknown>): Promise<unknown> {
