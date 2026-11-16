@@ -47,15 +47,14 @@ export function PostRow({ post, isMine, onOpen, onOpenMenu, onOpenEdits }: PostR
               </Text>
             </Pressable>
           ) : null}
-          {isMine ? (
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="Opciones de tu publicación"
-              hitSlop={space.s3}
-              onPress={() => onOpenMenu(post)}>
-              <MoreIcon />
-            </Pressable>
-          ) : null}
+          {/* todas llevan "⋯": las tuyas para editar o eliminar, las de otros para reportar */}
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={isMine ? 'Opciones de tu publicación' : 'Opciones de la publicación'}
+            hitSlop={space.s3}
+            onPress={() => onOpenMenu(post)}>
+            <MoreIcon />
+          </Pressable>
         </View>
       </View>
       <Text variant="bodyLarge" weight="semiBold">

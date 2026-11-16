@@ -124,7 +124,7 @@ export default function ForoScreen() {
             post={item}
             isMine={item.author.id === myUserId}
             onOpen={openThread}
-            onOpenMenu={postMenu.openPostMenu}
+            onOpenMenu={(post) => postMenu.openPostMenu(post, { isMine: post.author.id === myUserId })}
             onOpenEdits={openEdits}
           />
         )}

@@ -1,6 +1,6 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { render, screen, userEvent, waitFor } from '@testing-library/react-native';
-import { useLocalSearchParams } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import type { ReactNode } from 'react';
 import { Alert } from 'react-native';
 
@@ -93,8 +93,9 @@ describe('ThreadScreen', () => {
     expect(screen.getByText('1 respuesta')).toBeOnTheScreen();
     expect(await screen.findByText(theirReply.content)).toBeOnTheScreen();
     expect(screen.getByText('autor')).toBeOnTheScreen();
-    // no es mi publicación: sin menú arriba (Reportar llega en el siguiente slice)
+    // no es mi publicación: el menú de arriba es para reportar
     expect(screen.queryByRole('button', { name: 'Opciones de tu publicación' })).toBeNull();
+    expect(screen.getByRole('button', { name: 'Opciones de la publicación' })).toBeOnTheScreen();
   });
 
   test('sin respuestas invita a responder', async () => {
@@ -184,5 +185,38 @@ describe('ThreadScreen', () => {
     await renderWithQueryClient(<ThreadScreen />);
 
     expect(await screen.findByRole('button', { name: 'Opciones de tu publicación' })).toBeOnTheScreen();
+  });
+
+  test('en la publicación de otra persona, el menú de arriba lleva a Reportar', async () => {
+    jest.mocked(fetchPost).mockResolvedValue(post);
+    jest.mocked(fetchCommentsPage).mockResolvedValue([]);
+    const alertSpy = jest.spyOn(Alert, 'alert').mockImplementation((_title, _message, buttons) => {
+      expect(buttons?.map((button) => button.text)).toEqual(['Reportar', 'Cancelar']);
+      buttons?.find((button) => button.text === 'Reportar')?.onPress?.();
+    });
+    const user = userEvent.setup();
+    await renderWithQueryClient(<ThreadScreen />);
+
+    await user.press(await screen.findByRole('button', { name: 'Opciones de la publicación' }));
+
+    expect(router.push).toHaveBeenCalledWith({ pathname: '/reportar', params: { postId: '7' } });
+    alertSpy.mockRestore();
+  });
+
+  test('la respuesta de otra persona tiene menú para reportarla', async () => {
+    jest.mocked(fetchPost).mockResolvedValue(post);
+    jest.mocked(fetchCommentsPage).mockResolvedValue([theirReply]);
+    const alertSpy = jest.spyOn(Alert, 'alert').mockImplementation((_title, _message, buttons) => {
+      expect(buttons?.map((button) => button.text)).toEqual(['Reportar', 'Cancelar']);
+      buttons?.find((button) => button.text === 'Reportar')?.onPress?.();
+    });
+    const user = userEvent.setup();
+    await renderWithQueryClient(<ThreadScreen />);
+
+    await user.press(await screen.findByRole('button', { name: 'Opciones de la respuesta' }));
+
+    expect(alertSpy).toHaveBeenCalledWith('Respuesta de nube-libre', undefined, expect.any(Array));
+    expect(router.push).toHaveBeenCalledWith({ pathname: '/reportar', params: { commentId: '30' } });
+    alertSpy.mockRestore();
   });
 });

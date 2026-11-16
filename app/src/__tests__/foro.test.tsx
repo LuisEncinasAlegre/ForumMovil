@@ -110,11 +110,18 @@ describe('ForoScreen', () => {
     expect(screen.queryByText(/respuesta/)).toBeNull();
   });
 
-  test('solo mis publicaciones tienen menú', async () => {
+  test('todas las publicaciones tienen menú y el foro le dice cuál es mía', async () => {
+    const openPostMenu = jest.fn();
+    jest.mocked(usePostMenu).mockReturnValue({ openPostMenu, deleteErrorMessage: null });
     const mine = { ...post, id: 8, title: 'La mía', author: { id: 'usuario-1', display_name: 'farol-veloz', color: null } };
     mockFeed({ posts: [mine, post] });
+    const user = userEvent.setup();
     await render(<ForoScreen />);
 
-    expect(screen.getAllByRole('button', { name: 'Opciones de tu publicación' })).toHaveLength(1);
+    await user.press(screen.getByRole('button', { name: 'Opciones de tu publicación' }));
+    await user.press(screen.getByRole('button', { name: 'Opciones de la publicación' }));
+
+    expect(openPostMenu).toHaveBeenNthCalledWith(1, mine, { isMine: true });
+    expect(openPostMenu).toHaveBeenNthCalledWith(2, post, { isMine: false });
   });
 });

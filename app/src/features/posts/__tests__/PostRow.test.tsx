@@ -23,11 +23,22 @@ describe('PostRow', () => {
     expect(screen.getByText('Entrego reporte mañana.')).toBeOnTheScreen();
   });
 
-  test('sin editar y ajena: ni "editado" ni menú', async () => {
+  test('sin editar no muestra "editado"', async () => {
     await render(<PostRow post={post} isMine={false} onOpen={jest.fn()} onOpenMenu={jest.fn()} onOpenEdits={jest.fn()} />);
 
     expect(screen.queryByText('· editado')).toBeNull();
+  });
+
+  test('ajena: también tiene menú ⋯ (para reportar) y no abre el hilo', async () => {
+    const onOpen = jest.fn();
+    const onOpenMenu = jest.fn();
+    const user = userEvent.setup();
+    await render(<PostRow post={post} isMine={false} onOpen={onOpen} onOpenMenu={onOpenMenu} onOpenEdits={jest.fn()} />);
+
     expect(screen.queryByRole('button', { name: 'Opciones de tu publicación' })).toBeNull();
+    await user.press(screen.getByRole('button', { name: 'Opciones de la publicación' }));
+    expect(onOpenMenu).toHaveBeenCalledWith(post);
+    expect(onOpen).not.toHaveBeenCalled();
   });
 
   test('editada: "editado" abre las versiones', async () => {

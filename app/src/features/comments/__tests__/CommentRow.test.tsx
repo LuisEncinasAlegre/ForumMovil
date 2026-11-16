@@ -30,12 +30,24 @@ describe('CommentRow', () => {
     expect(screen.getByText('autor')).toBeOnTheScreen();
   });
 
-  test('solo las mías tienen menú, y se abre', async () => {
+  test('las mías tienen menú, y se abre', async () => {
     const onOpenMenu = jest.fn();
     const user = userEvent.setup();
     await render(<CommentRow comment={comment} isMine isByPostAuthor={false} onOpenMenu={onOpenMenu} onOpenEdits={jest.fn()} />);
 
     await user.press(screen.getByRole('button', { name: 'Opciones de tu respuesta' }));
+    expect(onOpenMenu).toHaveBeenCalledWith(comment);
+  });
+
+  test('las de otros también tienen menú (para reportar)', async () => {
+    const onOpenMenu = jest.fn();
+    const user = userEvent.setup();
+    await render(
+      <CommentRow comment={comment} isMine={false} isByPostAuthor={false} onOpenMenu={onOpenMenu} onOpenEdits={jest.fn()} />,
+    );
+
+    expect(screen.queryByRole('button', { name: 'Opciones de tu respuesta' })).toBeNull();
+    await user.press(screen.getByRole('button', { name: 'Opciones de la respuesta' }));
     expect(onOpenMenu).toHaveBeenCalledWith(comment);
   });
 

@@ -55,10 +55,11 @@ export function CommentRow({
             </Text>
           </Pressable>
         ) : null}
-        {isMine && !isPending ? (
+        {/* todas llevan "⋯": las tuyas para editar o eliminar, las de otros para reportar */}
+        {!isPending ? (
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel="Opciones de tu respuesta"
+            accessibilityLabel={isMine ? 'Opciones de tu respuesta' : 'Opciones de la respuesta'}
             hitSlop={space.s3}
             onPress={() => onOpenMenu(comment)}
             style={styles.more}>
