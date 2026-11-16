@@ -5,8 +5,13 @@ import { getPostErrorMessage } from './postErrorMessage';
 import type { FeedPost } from './types';
 import { useDeletePost } from './useDeletePost';
 
+type PostMenuOptions = {
+  // en el hilo, después de eliminar volvemos al foro
+  onDeleted?: () => void;
+};
+
 type PostMenu = {
-  openPostMenu: (post: FeedPost) => void;
+  openPostMenu: (post: FeedPost, options?: PostMenuOptions) => void;
   deleteErrorMessage: string | null;
 };
 
@@ -15,20 +20,24 @@ type PostMenu = {
 export function usePostMenu(): PostMenu {
   const deletePost = useDeletePost();
 
-  function confirmDelete(post: FeedPost): void {
+  function confirmDelete(post: FeedPost, options?: PostMenuOptions): void {
     Alert.alert('¿Eliminar esta publicación?', 'Ya no aparecerá en el foro. No se puede deshacer.', [
       { text: 'Cancelar', style: 'cancel' },
-      { text: 'Eliminar', style: 'destructive', onPress: () => deletePost.mutate(post.id) },
+      {
+        text: 'Eliminar',
+        style: 'destructive',
+        onPress: () => deletePost.mutate(post.id, { onSuccess: options?.onDeleted }),
+      },
     ]);
   }
 
-  function openPostMenu(post: FeedPost): void {
+  function openPostMenu(post: FeedPost, options?: PostMenuOptions): void {
     Alert.alert(post.title, undefined, [
       {
         text: 'Editar',
         onPress: () => router.push({ pathname: '/escribir', params: { postId: String(post.id) } }),
       },
-      { text: 'Eliminar', style: 'destructive', onPress: () => confirmDelete(post) },
+      { text: 'Eliminar', style: 'destructive', onPress: () => confirmDelete(post, options) },
       { text: 'Cancelar', style: 'cancel' },
     ]);
   }

@@ -19,6 +19,10 @@ import { TopBar } from '@/ui/TopBar';
 
 const GHOST_FADES = [1, 0.8, 0.55, 0.3];
 
+function openThread(post: FeedPost): void {
+  router.push({ pathname: '/hilo/[id]', params: { id: String(post.id) } });
+}
+
 function openEdits(post: FeedPost): void {
   router.push({ pathname: '/ediciones', params: { postId: String(post.id) } });
 }
@@ -119,6 +123,7 @@ export default function ForoScreen() {
           <PostRow
             post={item}
             isMine={item.author.id === myUserId}
+            onOpen={openThread}
             onOpenMenu={postMenu.openPostMenu}
             onOpenEdits={openEdits}
           />

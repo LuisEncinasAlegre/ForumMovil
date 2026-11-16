@@ -7,23 +7,29 @@ import { MoreIcon } from '@/ui/MoreIcon';
 import { Rule } from '@/ui/Rule';
 import { Text } from '@/ui/Text';
 
+import { formatReplyCount } from './replyCountLabel';
 import type { FeedPost } from './types';
 
 type PostRowProps = {
   post: FeedPost;
   isMine: boolean;
+  onOpen: (post: FeedPost) => void;
   onOpenMenu: (post: FeedPost) => void;
   onOpenEdits: (post: FeedPost) => void;
 };
 
 // Fila del foro (components/post-row.elyx). Sin tarjeta: tipografía y una línea fina.
-// TODO: tocar la fila abre el hilo (slice 04).
-export function PostRow({ post, isMine, onOpenMenu, onOpenEdits }: PostRowProps) {
+// Toda la fila abre el hilo; "editado" y "⋯" tienen su propio toque encima.
+export function PostRow({ post, isMine, onOpen, onOpenMenu, onOpenEdits }: PostRowProps) {
   // la hora es cuándo se publicó, aunque después se haya editado
   const timeAgo = formatTimeAgo(post.created_at);
 
   return (
-    <View style={styles.row}>
+    <Pressable
+      accessibilityRole="button"
+      accessibilityHint="Abre el hilo"
+      onPress={() => onOpen(post)}
+      style={({ pressed }) => [styles.row, pressed && styles.pressed]}>
       <View style={styles.meta}>
         <AliasTag author={post.author} />
         <View style={styles.side}>
@@ -59,9 +65,15 @@ export function PostRow({ post, isMine, onOpenMenu, onOpenEdits }: PostRowProps)
         {post.content}
       </Text>
       <View style={styles.foot}>
+        {/* sin respuestas no mostramos nada */}
+        {post.replyCount > 0 ? (
+          <Text variant="small" weight="medium" color="ink3">
+            {formatReplyCount(post.replyCount)}
+          </Text>
+        ) : null}
         <Rule />
       </View>
-    </View>
+    </Pressable>
   );
 }
 
@@ -81,7 +93,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: space.s2,
   },
+  pressed: {
+    opacity: 0.7,
+  },
   foot: {
-    paddingTop: space.s4,
+    paddingTop: space.s1,
+    gap: space.s4,
   },
 });

@@ -1,9 +1,9 @@
 import { useMutation, useQueryClient, type UseMutationResult } from '@tanstack/react-query';
 
 import { createPost } from './api';
-import type { FeedPost, PostDraft } from './types';
+import type { Post, PostDraft } from './types';
 
-export function useCreatePost(): UseMutationResult<FeedPost, Error, PostDraft> {
+export function useCreatePost(): UseMutationResult<Post, Error, PostDraft> {
   const queryClient = useQueryClient();
 
   return useMutation({

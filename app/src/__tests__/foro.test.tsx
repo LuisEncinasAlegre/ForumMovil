@@ -27,6 +27,7 @@ const post = {
   created_at: '2026-11-15T00:00:00Z',
   edited_at: null,
   author: { id: 'otra-persona', display_name: 'nube-libre', color: null },
+  replyCount: 14,
 };
 
 type FeedState = {
@@ -90,6 +91,23 @@ describe('ForoScreen', () => {
     expect(screen.getByText('Con 43 grados')).toBeOnTheScreen();
     await user.press(screen.getByRole('button', { name: 'Crear publicación' }));
     expect(router.push).toHaveBeenCalledWith('/escribir');
+  });
+
+  test('tocar una publicación abre su hilo y se ve cuántas respuestas tiene', async () => {
+    mockFeed({ posts: [post] });
+    const user = userEvent.setup();
+    await render(<ForoScreen />);
+
+    expect(screen.getByText('14 respuestas')).toBeOnTheScreen();
+    await user.press(screen.getByText('Con 43 grados'));
+    expect(router.push).toHaveBeenCalledWith({ pathname: '/hilo/[id]', params: { id: '7' } });
+  });
+
+  test('sin respuestas no se muestra la línea de respuestas', async () => {
+    mockFeed({ posts: [{ ...post, replyCount: 0 }] });
+    await render(<ForoScreen />);
+
+    expect(screen.queryByText(/respuesta/)).toBeNull();
   });
 
   test('solo mis publicaciones tienen menú', async () => {
