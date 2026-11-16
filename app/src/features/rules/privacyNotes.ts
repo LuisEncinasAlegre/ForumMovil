@@ -11,7 +11,7 @@ export const PRIVACY_NOTES: PrivacyNote[] = [
   },
   {
     title: 'Lo que se guarda',
-    body: 'Tu alias, tu color, lo que publicas y respondes, y los reportes que envías.',
+    body: 'Tu alias, tu color, lo que publicas y respondes, los reportes que envías y los avisos de moderación que recibes.',
   },
   {
     title: 'Lo que editas o eliminas',
@@ -20,6 +20,10 @@ export const PRIVACY_NOTES: PrivacyNote[] = [
   {
     title: 'Tus reportes',
     body: 'Son anónimos. Nadie en la app puede leerlos, ni tú. Solo moderación.',
+  },
+  {
+    title: 'Moderación',
+    body: 'Personas del equipo revisan a mano lo que se reporta y lo que marcan las revisiones automáticas (palabras de una lista, enlaces o el mismo texto repetido). Ven el texto y tu alias, nunca un correo o teléfono: no los tenemos.',
   },
   {
     title: 'Si borras la app',

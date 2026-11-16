@@ -18,6 +18,7 @@ export const COMMUNITY_RULES: CommunityRule[] = [
   },
   {
     title: 'Si algo cruza la línea, repórtalo. Se revisa.',
-    detail: 'Toca los tres puntos de la publicación o respuesta y elige Reportar. Moderación lo revisa y puede ocultarlo.',
+    detail:
+      'Toca los tres puntos de la publicación o respuesta y elige Reportar. Moderación lo revisa: si rompe las reglas, lo oculta y quien lo escribió recibe una advertencia.',
   },
 ];
