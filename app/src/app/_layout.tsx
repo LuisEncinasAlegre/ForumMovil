@@ -58,6 +58,12 @@ function RootNavigator() {
       <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.paper } }}>
         <Stack.Protected guard={isInForum}>
           <Stack.Screen name="index" />
+          {/* sin gesto para cerrar: así no se pierde un borrador (usePreventRemove es del SDK 58) */}
+          <Stack.Screen name="escribir" options={{ presentation: 'modal', gestureEnabled: false }} />
+          <Stack.Screen
+            name="ediciones"
+            options={{ presentation: 'formSheet', sheetAllowedDetents: [0.6, 1], sheetGrabberVisible: true }}
+          />
         </Stack.Protected>
         <Stack.Protected guard={!isInForum}>
           <Stack.Screen name="bienvenida" />

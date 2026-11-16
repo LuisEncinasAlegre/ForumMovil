@@ -8,17 +8,21 @@ import { getAliasInitials, getSealColor } from './sealColor';
 
 type SealMarkProps = {
   profile: Pick<Profile, 'id' | 'color' | 'display_name'>;
+  // small: el de la cabecera del foro; large: bienvenida y Tú
+  size?: 'small' | 'large';
 };
 
 // Sello cuadrado con las iniciales del alias. Nunca un círculo: es un seudónimo, no una cara.
-export function SealMark({ profile }: SealMarkProps) {
+export function SealMark({ profile, size = 'large' }: SealMarkProps) {
+  const isSmall = size === 'small';
+
   return (
     <View
       // el alias escrito al lado es lo que lee el lector de pantalla
       accessibilityElementsHidden
       importantForAccessibility="no-hide-descendants"
-      style={[styles.seal, { backgroundColor: getSealColor(profile) }]}>
-      <Text variant="title" weight="bold" color="paper">
+      style={[isSmall ? styles.small : styles.large, { backgroundColor: getSealColor(profile) }]}>
+      <Text variant={isSmall ? 'small' : 'title'} weight={isSmall ? 'semiBold' : 'bold'} color="paper">
         {getAliasInitials(profile.display_name)}
       </Text>
     </View>
@@ -26,10 +30,17 @@ export function SealMark({ profile }: SealMarkProps) {
 }
 
 const styles = StyleSheet.create({
-  seal: {
+  large: {
     width: 56,
     height: 56,
     borderRadius: radius.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  small: {
+    width: 32,
+    height: 32,
+    borderRadius: radius.sm,
     alignItems: 'center',
     justifyContent: 'center',
   },
