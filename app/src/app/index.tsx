@@ -107,7 +107,7 @@ export default function ForoScreen() {
         hasRule
         left={
           <Text variant="title" weight="semiBold" accessibilityRole="header">
-            OpenPriv
+            ForumMovil
           </Text>
         }
         right={

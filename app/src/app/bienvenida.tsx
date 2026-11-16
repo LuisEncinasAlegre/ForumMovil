@@ -35,7 +35,7 @@ export default function WelcomeScreen() {
     <Screen footer={footer}>
       <View style={styles.intro}>
         <Text variant="title" weight="semiBold" color="accent">
-          OpenPriv
+          ForumMovil
         </Text>
         <Text variant="display" weight="medium" accessibilityRole="header">
           {'Aquí hablas\nsin tu nombre.'}
