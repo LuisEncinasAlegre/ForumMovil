@@ -71,8 +71,8 @@ const styles = StyleSheet.create({
     gap: space.s2,
   },
   band: {
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderTopWidth: 1,
+    borderBottomWidth: 1,
     paddingVertical: space.s3,
     paddingHorizontal: space.gutter,
   },

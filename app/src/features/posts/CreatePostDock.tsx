@@ -36,7 +36,7 @@ export function CreatePostDock({ onPress, disabled = false }: CreatePostDockProp
 
 const styles = StyleSheet.create({
   dock: {
-    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopWidth: 1,
     paddingTop: space.s3,
     paddingHorizontal: space.gutter,
     paddingBottom: space.s2,

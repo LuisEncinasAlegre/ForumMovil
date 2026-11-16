@@ -81,7 +81,7 @@ export function ReplyDock({ dock, authorName, onSent }: ReplyDockProps) {
 
 const styles = StyleSheet.create({
   dock: {
-    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopWidth: 1,
   },
   editing: {
     flexDirection: 'row',
@@ -106,7 +106,7 @@ const styles = StyleSheet.create({
     flex: 1,
     minHeight: space.s12,
     maxHeight: 140,
-    borderWidth: StyleSheet.hairlineWidth,
+    borderWidth: 1,
     borderRadius: radius.md,
     paddingHorizontal: space.s4,
     paddingTop: space.s3,
