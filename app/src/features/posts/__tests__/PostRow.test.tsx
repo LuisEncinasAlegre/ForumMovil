@@ -7,6 +7,7 @@ const post: FeedPost = {
   id: 7,
   title: '¿Dónde imprimen barato?',
   content: 'Entrego reporte mañana.',
+  status: 'visible',
   created_at: new Date(Date.now() - 4 * 60 * 1000).toISOString(),
   edited_at: null,
   author: { id: 'usuario-1', display_name: 'farol-veloz', color: null },

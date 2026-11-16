@@ -37,6 +37,7 @@ const post = {
   id: 7,
   title: 'Con 43 grados',
   content: 'Hace calor.',
+  status: 'visible',
   created_at: '2026-11-15T00:00:00Z',
   edited_at: null,
   author: { id: 'usuario-1', display_name: 'farol-veloz', color: null },

@@ -45,6 +45,7 @@ const post = {
   id: 7,
   title: '¿Alguien más siente que Cálculo III está diseñado para tronarnos?',
   content: 'Llevo tres semanas sin dormir bien.',
+  status: 'visible',
   created_at: '2026-11-16T00:00:00Z',
   edited_at: null,
   author: otherAuthor,

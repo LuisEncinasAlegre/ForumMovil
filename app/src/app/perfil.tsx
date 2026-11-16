@@ -6,6 +6,7 @@ import { useMyCommentCount } from '@/features/comments/useMyCommentCount';
 import { IdentityColorPicker } from '@/features/identity/IdentityColorPicker';
 import { SealMark } from '@/features/identity/SealMark';
 import { useColorChoice } from '@/features/identity/useColorChoice';
+import { HiddenPostRow } from '@/features/posts/HiddenPostRow';
 import { PostRow } from '@/features/posts/PostRow';
 import { PostRowGhost } from '@/features/posts/PostRowGhost';
 import type { FeedPost } from '@/features/posts/types';
@@ -158,16 +159,20 @@ export default function PerfilScreen() {
       <FlatList
         data={posts}
         keyExtractor={(post) => String(post.id)}
-        renderItem={({ item }) => (
-          <PostRow
-            post={item}
-            isMine
-            isCompact
-            onOpen={openThread}
-            onOpenMenu={(post) => postMenu.openPostMenu(post, { isMine: true })}
-            onOpenEdits={openEdits}
-          />
-        )}
+        renderItem={({ item }) =>
+          item.status === 'hidden' ? (
+            <HiddenPostRow post={item} />
+          ) : (
+            <PostRow
+              post={item}
+              isMine
+              isCompact
+              onOpen={openThread}
+              onOpenMenu={(post) => postMenu.openPostMenu(post, { isMine: true })}
+              onOpenEdits={openEdits}
+            />
+          )
+        }
         ListHeaderComponent={renderHeader()}
         ListEmptyComponent={renderEmpty()}
         ListFooterComponent={renderFooter()}

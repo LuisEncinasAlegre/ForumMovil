@@ -41,6 +41,7 @@ const myPost = {
   content: 'Llevo tres semanas sin dormir.',
   created_at: '2026-11-15T00:00:00Z',
   edited_at: null,
+  status: 'visible',
   author: { id: 'usuario-1', display_name: 'farol-veloz', color: identityColors.anil },
   replyCount: 14,
 };
@@ -157,6 +158,19 @@ describe('PerfilScreen', () => {
 
     await user.press(screen.getByRole('button', { name: 'Opciones de tu publicación' }));
     expect(openPostMenu).toHaveBeenCalledWith(myPost, { isMine: true });
+  });
+
+  test('tu publicación oculta se ve apagada y no se abre', async () => {
+    const hiddenPost = { ...myPost, id: 8, title: 'Una que moderación ocultó', status: 'hidden' };
+    mockList({ posts: [hiddenPost] });
+    const user = userEvent.setup();
+    await render(<PerfilScreen />);
+
+    expect(screen.getByText('Oculta por moderación')).toBeOnTheScreen();
+    expect(screen.queryByRole('button', { name: 'Opciones de tu publicación' })).toBeNull();
+    jest.mocked(router.push).mockClear();
+    await user.press(screen.getByText('Una que moderación ocultó'));
+    expect(router.push).not.toHaveBeenCalled();
   });
 
   test('las filas de ajustes abren Reglas y Privacidad', async () => {
