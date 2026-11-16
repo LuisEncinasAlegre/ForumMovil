@@ -26,6 +26,10 @@ export const PRIVACY_NOTES: PrivacyNote[] = [
     body: 'Personas del equipo revisan a mano lo que se reporta y lo que marcan las revisiones automáticas (palabras de una lista, enlaces o el mismo texto repetido). Ven el texto y tu alias, nunca un correo o teléfono: no los tenemos.',
   },
   {
+    title: 'Este teléfono',
+    body: 'Guardamos un identificador de este teléfono que da el sistema (no es tu número). Sirve para que una suspensión o un baneo alcance también a las cuentas nuevas que crees aquí. Solo lo ve moderación.',
+  },
+  {
     title: 'Si borras la app',
     body: 'Pierdes tu alias y no se puede recuperar. Lo que escribiste se queda, pero ya no podrás editarlo ni eliminarlo.',
   },
