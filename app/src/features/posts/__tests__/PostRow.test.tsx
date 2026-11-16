@@ -7,6 +7,7 @@ const post: FeedPost = {
   id: 7,
   title: '¿Dónde imprimen barato?',
   content: 'Entrego reporte mañana.',
+  status: 'visible',
   created_at: new Date(Date.now() - 4 * 60 * 1000).toISOString(),
   edited_at: null,
   author: { id: 'usuario-1', display_name: 'farol-veloz', color: null },
@@ -21,6 +22,15 @@ describe('PostRow', () => {
     expect(screen.getByText('hace 4 min')).toBeOnTheScreen();
     expect(screen.getByText('¿Dónde imprimen barato?')).toBeOnTheScreen();
     expect(screen.getByText('Entrego reporte mañana.')).toBeOnTheScreen();
+  });
+
+  test('compacta (Perfil): sin el extracto', async () => {
+    await render(
+      <PostRow post={post} isMine isCompact onOpen={jest.fn()} onOpenMenu={jest.fn()} onOpenEdits={jest.fn()} />,
+    );
+
+    expect(screen.getByText('¿Dónde imprimen barato?')).toBeOnTheScreen();
+    expect(screen.queryByText('Entrego reporte mañana.')).toBeNull();
   });
 
   test('sin editar no muestra "editado"', async () => {

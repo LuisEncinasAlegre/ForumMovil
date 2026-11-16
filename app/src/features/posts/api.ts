@@ -6,12 +6,12 @@ import type { FeedPost, Post, PostDraft, PostEdit } from './types';
 export const FEED_PAGE_SIZE = 20;
 
 // El alias viene de profiles por la llave foránea author_id (una sola consulta).
-const POST_COLUMNS = 'id, title, content, created_at, edited_at, author:profiles(id, display_name, color)';
+const POST_COLUMNS = 'id, title, content, status, created_at, edited_at, author:profiles(id, display_name, color)';
 // Para leer también cuántas respuestas tiene. Las respuestas se filtran con
 // onlyVisibleReplies, porque quien responde puede leer sus propias respuestas borradas.
 // (va escrito completo: supabase-js deduce los tipos solo de un texto literal)
 const POST_WITH_REPLIES_COLUMNS =
-  'id, title, content, created_at, edited_at, author:profiles(id, display_name, color), comments(count)';
+  'id, title, content, status, created_at, edited_at, author:profiles(id, display_name, color), comments(count)';
 
 type PostWithReplyCount = Post & {
   comments: { count: number }[];
@@ -49,6 +49,39 @@ export async function fetchFeedPage(beforeId: number | null): Promise<FeedPost[]
     throw error;
   }
   return data.map(toFeedPost);
+}
+
+// Tus publicaciones para Perfil, igual que el foro pero solo las tuyas.
+// Incluye las ocultas por moderación: solo tú las ves, marcadas como ocultas.
+export async function fetchMyPostsPage(userId: string, beforeId: number | null): Promise<FeedPost[]> {
+  let query = supabase
+    .from('posts')
+    .select(POST_WITH_REPLIES_COLUMNS)
+    .eq('author_id', userId)
+    .is('deleted_at', null)
+    .eq('comments.status', 'visible')
+    .is('comments.deleted_at', null);
+  if (beforeId !== null) {
+    query = query.lt('id', beforeId);
+  }
+  const { data, error } = await query.order('id', { ascending: false }).limit(FEED_PAGE_SIZE);
+  if (error) {
+    throw error;
+  }
+  return data.map(toFeedPost);
+}
+
+// Solo el número: head no trae filas. Cuenta las ocultas, como la lista de Perfil.
+export async function countMyPosts(userId: string): Promise<number> {
+  const { count, error } = await supabase
+    .from('posts')
+    .select('id', { count: 'exact', head: true })
+    .eq('author_id', userId)
+    .is('deleted_at', null);
+  if (error) {
+    throw error;
+  }
+  return count ?? 0;
 }
 
 // null si ya no existe o ya no se puede ver.

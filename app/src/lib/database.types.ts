@@ -92,6 +92,70 @@ export type Database = {
           },
         ];
       };
+      moderation_notices: {
+        Row: {
+          category: string;
+          comment_id: number | null;
+          counts_as_warning: boolean;
+          created_at: string;
+          excerpt: string;
+          id: number;
+          message: string;
+          post_id: number | null;
+          seen_at: string | null;
+          user_id: string;
+          withdrawn_at: string | null;
+        };
+        Insert: {
+          category: string;
+          comment_id?: number | null;
+          counts_as_warning?: boolean;
+          created_at?: string;
+          excerpt: string;
+          id?: never;
+          message: string;
+          post_id?: number | null;
+          seen_at?: string | null;
+          user_id: string;
+          withdrawn_at?: string | null;
+        };
+        Update: {
+          category?: string;
+          comment_id?: number | null;
+          counts_as_warning?: boolean;
+          created_at?: string;
+          excerpt?: string;
+          id?: never;
+          message?: string;
+          post_id?: number | null;
+          seen_at?: string | null;
+          user_id?: string;
+          withdrawn_at?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'moderation_notices_comment_id_fkey';
+            columns: ['comment_id'];
+            isOneToOne: false;
+            referencedRelation: 'comments';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'moderation_notices_post_id_fkey';
+            columns: ['post_id'];
+            isOneToOne: false;
+            referencedRelation: 'posts';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'moderation_notices_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       post_edits: {
         Row: {
           content: string;

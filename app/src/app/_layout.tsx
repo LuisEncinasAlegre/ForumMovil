@@ -69,8 +69,15 @@ function RootNavigator() {
             name="respuesta-ediciones"
             options={{ presentation: 'formSheet', sheetAllowedDetents: [0.6, 1], sheetGrabberVisible: true }}
           />
+          <Stack.Screen name="perfil" />
+          <Stack.Screen name="reglas" />
+          <Stack.Screen name="privacidad" />
           <Stack.Screen
             name="reportar"
+            options={{ presentation: 'formSheet', sheetAllowedDetents: 'fitToContents', sheetGrabberVisible: true }}
+          />
+          <Stack.Screen
+            name="aviso"
             options={{ presentation: 'formSheet', sheetAllowedDetents: 'fitToContents', sheetGrabberVisible: true }}
           />
         </Stack.Protected>

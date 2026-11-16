@@ -18,7 +18,7 @@ import { usePostMenu } from '@/features/posts/usePostMenu';
 import { useMyProfile } from '@/features/session/useMyProfile';
 import { space } from '@/theme/tokens';
 import { useTheme } from '@/theme/useTheme';
-import { LineIcon } from '@/ui/LineIcon';
+import { BackButton } from '@/ui/BackButton';
 import { Message } from '@/ui/Message';
 import { MoreIcon } from '@/ui/MoreIcon';
 import { Text } from '@/ui/Text';
@@ -222,11 +222,7 @@ export default function ThreadScreen() {
   return (
     <SafeAreaView style={[styles.screen, { backgroundColor: theme.paper }]} edges={['top', 'bottom']}>
       <TopBar
-        left={
-          <Pressable accessibilityRole="button" accessibilityLabel="Volver" hitSlop={space.s3} onPress={() => router.back()}>
-            <LineIcon name="back" />
-          </Pressable>
-        }
+        left={<BackButton />}
         // tu publicación: editar o eliminar; la de otra persona: reportar
         right={
           post ? (

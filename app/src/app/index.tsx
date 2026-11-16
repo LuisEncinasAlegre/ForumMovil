@@ -4,6 +4,7 @@ import { FlatList, Pressable, RefreshControl, StyleSheet, View } from 'react-nat
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { SealMark } from '@/features/identity/SealMark';
+import { useShowNoticeOnFocus } from '@/features/moderation/useShowNoticeOnFocus';
 import { CreatePostDock } from '@/features/posts/CreatePostDock';
 import { PostRow } from '@/features/posts/PostRow';
 import { PostRowGhost } from '@/features/posts/PostRowGhost';
@@ -33,6 +34,7 @@ export default function ForoScreen() {
   const feed = useFeed();
   const profileQuery = useMyProfile();
   const postMenu = usePostMenu();
+  useShowNoticeOnFocus();
   // solo mostramos el indicador cuando la persona jaló hacia abajo, no en recargas de fondo
   const [isPullRefreshing, setIsPullRefreshing] = useState(false);
 
@@ -105,11 +107,21 @@ export default function ForoScreen() {
         hasRule
         left={
           <Text variant="title" weight="semiBold" accessibilityRole="header">
-            OpenPriv
+            ForumMovil
           </Text>
         }
-        // TODO: el sello abre la pantalla Tú (slice de identidad)
-        right={profileQuery.data ? <SealMark profile={profileQuery.data} size="small" /> : null}
+        right={
+          profileQuery.data ? (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Tu perfil"
+              // el sello mide 32: así el área para tocar llega a 44
+              hitSlop={space.s2}
+              onPress={() => router.push('/perfil')}>
+              <SealMark profile={profileQuery.data} size="small" />
+            </Pressable>
+          ) : null
+        }
       />
       {notice ? (
         <Text variant="small" color="ink2" style={styles.notice} accessibilityRole="alert">

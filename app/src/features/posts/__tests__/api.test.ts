@@ -1,9 +1,11 @@
 import { supabase } from '@/lib/supabase';
 
 import {
+  countMyPosts,
   createPost,
   deletePost,
   fetchFeedPage,
+  fetchMyPostsPage,
   fetchPost,
   fetchPostEdits,
   PostNotEditableError,
@@ -16,7 +18,7 @@ jest.mock('@/lib/supabase', () => ({
 
 const mockedSupabase = jest.mocked(supabase, { shallow: false });
 
-type QueryResult = { data: unknown; error: unknown };
+type QueryResult = { data: unknown; error: unknown; count?: number | null };
 
 type QueryChain = {
   select: jest.Mock;
@@ -169,5 +171,49 @@ describe('fetchPostEdits', () => {
     mockQueryResult({ data: null, error: databaseError });
 
     await expect(fetchPostEdits(7)).rejects.toBe(databaseError);
+  });
+});
+
+describe('fetchMyPostsPage', () => {
+  test('tus publicaciones, también las ocultas, con el mismo orden y tamaño que el foro', async () => {
+    const chain = mockQueryResult({ data: [postRowWithCount], error: null });
+
+    await expect(fetchMyPostsPage('usuario-1', null)).resolves.toEqual([{ ...post, replyCount: 3 }]);
+    expect(chain.eq).toHaveBeenCalledWith('author_id', 'usuario-1');
+    expect(chain.eq).not.toHaveBeenCalledWith('status', 'visible');
+    expect(chain.is).toHaveBeenCalledWith('deleted_at', null);
+    expect(chain.order).toHaveBeenCalledWith('id', { ascending: false });
+    expect(chain.limit).toHaveBeenCalledWith(20);
+    expect(chain.lt).not.toHaveBeenCalled();
+  });
+
+  test('las siguientes páginas siguen desde el último id', async () => {
+    const chain = mockQueryResult({ data: [], error: null });
+
+    await fetchMyPostsPage('usuario-1', 42);
+    expect(chain.lt).toHaveBeenCalledWith('id', 42);
+  });
+
+  test('lanza el error de Supabase', async () => {
+    mockQueryResult({ data: null, error: databaseError });
+
+    await expect(fetchMyPostsPage('usuario-1', null)).rejects.toBe(databaseError);
+  });
+});
+
+describe('countMyPosts', () => {
+  test('cuenta sin traer filas', async () => {
+    const chain = mockQueryResult({ data: null, error: null, count: 4 });
+
+    await expect(countMyPosts('usuario-1')).resolves.toBe(4);
+    expect(chain.select).toHaveBeenCalledWith('id', { count: 'exact', head: true });
+    expect(chain.eq).toHaveBeenCalledWith('author_id', 'usuario-1');
+    expect(chain.is).toHaveBeenCalledWith('deleted_at', null);
+  });
+
+  test('lanza el error de Supabase', async () => {
+    mockQueryResult({ data: null, error: databaseError, count: null });
+
+    await expect(countMyPosts('usuario-1')).rejects.toBe(databaseError);
   });
 });

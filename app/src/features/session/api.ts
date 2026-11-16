@@ -49,6 +49,20 @@ export async function acceptRules(userId: string): Promise<Profile> {
   return data;
 }
 
+// El formato (#rrggbb en minúsculas) lo revisa la base de datos.
+export async function updateMyColor(userId: string, color: string): Promise<Profile> {
+  const { data, error } = await supabase
+    .from('profiles')
+    .update({ color })
+    .eq('id', userId)
+    .select('*')
+    .single();
+  if (error) {
+    throw error;
+  }
+  return data;
+}
+
 // Borra la sesión solo de este teléfono (el usuario ya no existe en el servidor).
 export async function forgetSession(): Promise<void> {
   const { error } = await supabase.auth.signOut({ scope: 'local' });
