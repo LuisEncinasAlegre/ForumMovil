@@ -8,10 +8,90 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: '14.1';
+    PostgrestVersion: '14.18';
   };
   public: {
     Tables: {
+      comment_edits: {
+        Row: {
+          comment_id: number;
+          content: string;
+          id: number;
+          replaced_at: string;
+          written_at: string;
+        };
+        Insert: {
+          comment_id: number;
+          content: string;
+          id?: never;
+          replaced_at?: string;
+          written_at: string;
+        };
+        Update: {
+          comment_id?: number;
+          content?: string;
+          id?: never;
+          replaced_at?: string;
+          written_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'comment_edits_comment_id_fkey';
+            columns: ['comment_id'];
+            isOneToOne: false;
+            referencedRelation: 'comments';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      comments: {
+        Row: {
+          author_id: string;
+          content: string;
+          created_at: string;
+          deleted_at: string | null;
+          edited_at: string | null;
+          id: number;
+          post_id: number;
+          status: string;
+        };
+        Insert: {
+          author_id?: string;
+          content: string;
+          created_at?: string;
+          deleted_at?: string | null;
+          edited_at?: string | null;
+          id?: never;
+          post_id: number;
+          status?: string;
+        };
+        Update: {
+          author_id?: string;
+          content?: string;
+          created_at?: string;
+          deleted_at?: string | null;
+          edited_at?: string | null;
+          id?: never;
+          post_id?: number;
+          status?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'comments_author_id_fkey';
+            columns: ['author_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'comments_post_id_fkey';
+            columns: ['post_id'];
+            isOneToOne: false;
+            referencedRelation: 'posts';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       post_edits: {
         Row: {
           content: string;
