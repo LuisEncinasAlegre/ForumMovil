@@ -1,56 +1,49 @@
-# Welcome to your Expo app
+# OpenPriv
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Foro móvil anónimo para la materia de Desarrollo de Aplicaciones Móviles. Entras sin correo ni
+contraseña: la app te da un alias al azar (por ejemplo `farol-veloz`) y con él publicas y comentas.
 
-## Get started
+- **App:** Expo SDK 57 + React Native + TypeScript, en `app/`.
+- **Backend:** Supabase (sesiones anónimas, PostgreSQL y Row Level Security), en `supabase/`.
 
-1. Install dependencies
+## Cómo correrla
 
-   ```bash
-   npm install
-   ```
+### 1. Proyecto de Supabase
 
-2. Start the app
+1. Crea un proyecto en [supabase.com](https://supabase.com).
+2. En **Authentication → Sign In / Providers**, activa **Allow anonymous sign-ins**.
+3. En el **SQL Editor**, pega y corre cada archivo de `supabase/migrations/` en orden.
+4. En **Project Settings → API Keys**, copia la URL del proyecto y la llave publicable.
 
-   ```bash
-   npx expo start
-   ```
-
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
+### 2. Variables de entorno
 
 ```bash
-npm run reset-project
+cd app
+cp .env.example .env
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+Llena `.env` con la URL y la llave publicable. Nunca pongas aquí la llave secreta: todo lo que
+empieza con `EXPO_PUBLIC_` termina dentro de la app.
 
-### Other setup steps
+### 3. App
 
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
+```bash
+cd app
+npm install
+npx expo start      # escanea el QR con Expo Go
+```
 
-## Learn more
+## Comandos (dentro de `app/`)
 
-To learn more about developing your project with Expo, look at the following resources:
+| Comando | Qué hace |
+| --- | --- |
+| `npm run lint` | ESLint |
+| `npm run tsc` | Revisa los tipos de TypeScript |
+| `npm test` | Pruebas unitarias y de componentes |
+| `npm run test:db` | Pruebas de seguridad contra el proyecto de Supabase del `.env` (crea usuarios anónimos de prueba) |
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+## Tipos de la base de datos
 
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+`app/src/lib/database.types.ts` sale del esquema. Después de cada migración, regenéralo desde el
+dashboard (**API Docs → TypeScript**) o con
+`npx supabase gen types typescript --remote=<ref> --schema public`.
