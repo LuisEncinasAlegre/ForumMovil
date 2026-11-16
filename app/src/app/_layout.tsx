@@ -74,6 +74,7 @@ function RootNavigator() {
           <Stack.Screen name="perfil" />
           <Stack.Screen name="reglas" />
           <Stack.Screen name="privacidad" />
+          <Stack.Screen name="suspendida" />
           <Stack.Screen
             name="reportar"
             options={{ presentation: 'formSheet', sheetAllowedDetents: 'fitToContents', sheetGrabberVisible: true }}

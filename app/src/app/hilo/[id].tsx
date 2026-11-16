@@ -10,6 +10,8 @@ import type { ThreadComment } from '@/features/comments/types';
 import { useCommentMenu } from '@/features/comments/useCommentMenu';
 import { useReplyDock } from '@/features/comments/useReplyDock';
 import { useThread } from '@/features/comments/useThread';
+import { BlockedDock } from '@/features/moderation/BlockedDock';
+import { useMyBan } from '@/features/moderation/useMyBan';
 import { PostDetail } from '@/features/posts/PostDetail';
 import { PostRowGhost } from '@/features/posts/PostRowGhost';
 import type { FeedPost } from '@/features/posts/types';
@@ -47,6 +49,7 @@ export default function ThreadScreen() {
   const dock = useReplyDock(postId);
   const commentMenu = useCommentMenu({ onEdit: dock.startEditing });
   const postMenu = usePostMenu();
+  const { ban } = useMyBan();
   const listRef = useRef<FlatList<ThreadComment>>(null);
   // solo mostramos el indicador cuando la persona jaló hacia abajo
   const [isPullRefreshing, setIsPullRefreshing] = useState(false);
@@ -200,7 +203,11 @@ export default function ThreadScreen() {
           }
           style={styles.screen}
         />
-        <ReplyDock dock={dock} authorName={me?.display_name ?? 'tu alias'} onSent={scrollToEnd} />
+        {ban ? (
+          <BlockedDock ban={ban} />
+        ) : (
+          <ReplyDock dock={dock} authorName={me?.display_name ?? 'tu alias'} onSent={scrollToEnd} />
+        )}
       </KeyboardAvoidingView>
     );
   }

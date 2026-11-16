@@ -5,6 +5,7 @@ import type { ReactNode } from 'react';
 import { Alert } from 'react-native';
 
 import { createComment, fetchCommentsPage, updateComment } from '@/features/comments/api';
+import { useMyBan } from '@/features/moderation/useMyBan';
 import { fetchPost } from '@/features/posts/api';
 import { useMyProfile } from '@/features/session/useMyProfile';
 
@@ -19,6 +20,7 @@ jest.mock('expo-haptics', () => ({
   NotificationFeedbackType: { Success: 'success' },
 }));
 jest.mock('@/features/session/useMyProfile', () => ({ useMyProfile: jest.fn() }));
+jest.mock('@/features/moderation/useMyBan', () => ({ useMyBan: jest.fn() }));
 jest.mock('@/features/posts/api', () => ({
   ...jest.requireActual('@/features/posts/api'),
   fetchPost: jest.fn(),
@@ -81,6 +83,7 @@ beforeEach(() => {
   jest.clearAllMocks();
   jest.mocked(useLocalSearchParams).mockReturnValue({ id: '7' });
   jest.mocked(useMyProfile).mockReturnValue({ data: me } as never);
+  jest.mocked(useMyBan).mockReturnValue({ ban: null, isPending: false, isError: false, refetch: jest.fn() });
 });
 
 describe('ThreadScreen', () => {
@@ -218,6 +221,32 @@ describe('ThreadScreen', () => {
 
     expect(alertSpy).toHaveBeenCalledWith('Respuesta de nube-libre', undefined, expect.any(Array));
     expect(router.push).toHaveBeenCalledWith({ pathname: '/reportar', params: { commentId: '30' } });
+    alertSpy.mockRestore();
+  });
+
+  test('con la cuenta baneada no hay muelle para responder y el menú explica por qué', async () => {
+    jest.mocked(useMyBan).mockReturnValue({
+      ban: { reason: 'Spam repetido.', endsAt: null },
+      isPending: false,
+      isError: false,
+      refetch: jest.fn(),
+    });
+    jest.mocked(fetchPost).mockResolvedValue(post);
+    jest.mocked(fetchCommentsPage).mockResolvedValue([theirReply]);
+    const alertSpy = jest.spyOn(Alert, 'alert').mockImplementation((_title, _message, buttons) => {
+      expect(buttons?.map((button) => button.text)).toEqual(['Ver por qué', 'Cancelar']);
+      buttons?.find((button) => button.text === 'Ver por qué')?.onPress?.();
+    });
+    const user = userEvent.setup();
+    await renderWithQueryClient(<ThreadScreen />);
+
+    expect(await screen.findByText(theirReply.content)).toBeOnTheScreen();
+    expect(screen.queryByPlaceholderText('Responde como farol-veloz')).toBeNull();
+    expect(screen.getByText('Tu cuenta está baneada')).toBeOnTheScreen();
+    await user.press(screen.getByRole('button', { name: 'Opciones de la respuesta' }));
+
+    expect(alertSpy).toHaveBeenCalledWith('Tu cuenta está baneada', expect.any(String), expect.any(Array));
+    expect(router.push).toHaveBeenCalledWith('/suspendida');
     alertSpy.mockRestore();
   });
 });

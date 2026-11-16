@@ -1,6 +1,9 @@
 import { router } from 'expo-router';
 import { Alert } from 'react-native';
 
+import { showBlockedAlert } from '@/features/moderation/showBlockedAlert';
+import { useMyBan } from '@/features/moderation/useMyBan';
+
 import { getCommentErrorMessage } from './commentErrorMessage';
 import type { ThreadComment } from './types';
 import { useDeleteComment } from './useDeleteComment';
@@ -19,6 +22,7 @@ type CommentMenu = {
 // las de otros se reportan.
 export function useCommentMenu({ onEdit }: CommentMenuOptions): CommentMenu {
   const deleteComment = useDeleteComment();
+  const { ban } = useMyBan();
 
   function confirmDelete(comment: ThreadComment): void {
     Alert.alert('¿Eliminar esta respuesta?', 'Ya no aparecerá en el hilo. No se puede deshacer.', [
@@ -28,6 +32,10 @@ export function useCommentMenu({ onEdit }: CommentMenuOptions): CommentMenu {
   }
 
   function openCommentMenu(comment: ThreadComment, isMine: boolean): void {
+    if (ban) {
+      showBlockedAlert(ban);
+      return;
+    }
     if (!isMine) {
       Alert.alert('Respuesta de ' + comment.author.display_name, undefined, [
         {

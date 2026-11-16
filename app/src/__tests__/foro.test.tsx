@@ -1,6 +1,7 @@
 import { render, screen, userEvent } from '@testing-library/react-native';
 import { router } from 'expo-router';
 
+import { useMyBan } from '@/features/moderation/useMyBan';
 import { useFeed } from '@/features/posts/useFeed';
 import { usePostMenu } from '@/features/posts/usePostMenu';
 import { useMyProfile } from '@/features/session/useMyProfile';
@@ -13,6 +14,8 @@ jest.mock('@/features/posts/usePostMenu', () => ({ usePostMenu: jest.fn() }));
 jest.mock('@/features/session/useMyProfile', () => ({ useMyProfile: jest.fn() }));
 // el aviso de moderación se prueba aparte
 jest.mock('@/features/moderation/useShowNoticeOnFocus', () => ({ useShowNoticeOnFocus: jest.fn() }));
+jest.mock('@/features/moderation/useShowBanOnFocus', () => ({ useShowBanOnFocus: jest.fn(() => false) }));
+jest.mock('@/features/moderation/useMyBan', () => ({ useMyBan: jest.fn() }));
 
 const profile = {
   id: 'usuario-1',
@@ -57,6 +60,7 @@ function mockFeed({ isPending = false, isError = false, posts }: FeedState) {
 beforeEach(() => {
   jest.mocked(useMyProfile).mockReturnValue({ data: profile } as never);
   jest.mocked(usePostMenu).mockReturnValue({ openPostMenu: jest.fn(), deleteErrorMessage: null });
+  jest.mocked(useMyBan).mockReturnValue({ ban: null, isPending: false, isError: false, refetch: jest.fn() });
 });
 
 describe('ForoScreen', () => {
@@ -125,6 +129,23 @@ describe('ForoScreen', () => {
 
     expect(openPostMenu).toHaveBeenNthCalledWith(1, mine, { isMine: true });
     expect(openPostMenu).toHaveBeenNthCalledWith(2, post, { isMine: false });
+  });
+
+  test('con la cuenta suspendida no se puede crear y "Ver por qué" explica la suspensión', async () => {
+    jest.mocked(useMyBan).mockReturnValue({
+      ban: { reason: 'Insultaste a otras personas.', endsAt: '2026-11-20T14:30:00Z' },
+      isPending: false,
+      isError: false,
+      refetch: jest.fn(),
+    });
+    mockFeed({ posts: [post] });
+    const user = userEvent.setup();
+    await render(<ForoScreen />);
+
+    expect(screen.queryByRole('button', { name: 'Crear publicación' })).toBeNull();
+    expect(screen.getByText('Tu cuenta está suspendida')).toBeOnTheScreen();
+    await user.press(screen.getByRole('button', { name: 'Ver por qué' }));
+    expect(router.push).toHaveBeenCalledWith('/suspendida');
   });
 
   test('tu sello abre tu perfil', async () => {
