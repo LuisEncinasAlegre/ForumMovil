@@ -1,57 +1,8 @@
 // Pruebas de las reglas de seguridad de reports. Corren con `npm run test:db` contra el proyecto
 // de Supabase del .env. Las pruebas van en orden y comparten datos: cada corrida crea cuatro
 // usuarios anónimos (Supabase limita las sesiones anónimas por hora).
-import { existsSync, readFileSync } from 'node:fs';
-import { parseEnv } from 'node:util';
-
-import { createClient, type SupabaseClient } from '@supabase/supabase-js';
-
-type TestUser = {
-  client: SupabaseClient;
-  userId: string;
-};
-
-if (!existsSync('.env')) {
-  throw new Error('Falta app/.env. Cópialo de .env.example y pon la URL y la llave publicable.');
-}
-// Leemos el .env a mano (ver profiles.test.ts).
-const env = parseEnv(readFileSync('.env', 'utf8'));
-const supabaseUrl = env.EXPO_PUBLIC_SUPABASE_URL ?? '';
-const supabaseKey = env.EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY ?? '';
-
-function createTestClient(): SupabaseClient {
-  return createClient(supabaseUrl, supabaseKey, {
-    auth: { persistSession: false, autoRefreshToken: false },
-  });
-}
-
-async function signInAsNewUser(): Promise<TestUser> {
-  const client = createTestClient();
-  const { data, error } = await client.auth.signInAnonymously();
-  if (error || !data.user) {
-    throw new Error('No se pudo iniciar sesión anónima: ' + error?.message);
-  }
-  return { client, userId: data.user.id };
-}
-
-async function signInAsMember(): Promise<TestUser> {
-  const user = await signInAsNewUser();
-  const { error } = await user.client
-    .from('profiles')
-    .update({ rules_accepted_at: new Date().toISOString() })
-    .eq('id', user.userId);
-  if (error) {
-    throw new Error('No se pudieron aceptar las reglas: ' + error.message);
-  }
-  // Como la app: sin un teléfono registrado no se puede escribir.
-  const registered = await user.client
-    .from('user_devices')
-    .insert({ device_id: `prueba-${user.userId}`, platform: 'android' });
-  if (registered.error) {
-    throw new Error('No se pudo registrar el teléfono: ' + registered.error.message);
-  }
-  return user;
-}
+import { createTestClient } from './helpers/clients';
+import { signInAsMember, signInAsNewUser, type TestUser } from './helpers/users';
 
 async function createTestPost(user: TestUser, title: string): Promise<number> {
   const { data, error } = await user.client

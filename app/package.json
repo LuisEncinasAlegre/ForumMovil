@@ -54,7 +54,7 @@
     "lint": "expo lint",
     "tsc": "tsc --noEmit",
     "test": "jest --passWithNoTests",
-    "test:db": "jest --config db-tests/jest.config.js"
+    "test:db": "jest --config db-tests/jest.config.js --ci"
   },
   "private": true,
   "jest": {
