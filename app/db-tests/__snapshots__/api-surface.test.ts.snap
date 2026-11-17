@@ -1,0 +1,504 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`superficie de la api nada cambió sin que alguien lo revisara 1`] = `
+[
+  {
+    "detail": "INSERT",
+    "kind": "column",
+    "object_name": "public.comments.content",
+    "role_name": "authenticated",
+  },
+  {
+    "detail": "UPDATE",
+    "kind": "column",
+    "object_name": "public.comments.content",
+    "role_name": "authenticated",
+  },
+  {
+    "detail": "UPDATE",
+    "kind": "column",
+    "object_name": "public.comments.deleted_at",
+    "role_name": "authenticated",
+  },
+  {
+    "detail": "INSERT",
+    "kind": "column",
+    "object_name": "public.comments.post_id",
+    "role_name": "authenticated",
+  },
+  {
+    "detail": "UPDATE",
+    "kind": "column",
+    "object_name": "public.moderation_notices.seen_at",
+    "role_name": "authenticated",
+  },
+  {
+    "detail": "INSERT",
+    "kind": "column",
+    "object_name": "public.posts.content",
+    "role_name": "authenticated",
+  },
+  {
+    "detail": "UPDATE",
+    "kind": "column",
+    "object_name": "public.posts.content",
+    "role_name": "authenticated",
+  },
+  {
+    "detail": "UPDATE",
+    "kind": "column",
+    "object_name": "public.posts.deleted_at",
+    "role_name": "authenticated",
+  },
+  {
+    "detail": "INSERT",
+    "kind": "column",
+    "object_name": "public.posts.title",
+    "role_name": "authenticated",
+  },
+  {
+    "detail": "UPDATE",
+    "kind": "column",
+    "object_name": "public.posts.title",
+    "role_name": "authenticated",
+  },
+  {
+    "detail": "UPDATE",
+    "kind": "column",
+    "object_name": "public.profile_private.rules_accepted_at",
+    "role_name": "authenticated",
+  },
+  {
+    "detail": "UPDATE",
+    "kind": "column",
+    "object_name": "public.profiles.color",
+    "role_name": "authenticated",
+  },
+  {
+    "detail": "INSERT",
+    "kind": "column",
+    "object_name": "public.reports.comment_id",
+    "role_name": "authenticated",
+  },
+  {
+    "detail": "INSERT",
+    "kind": "column",
+    "object_name": "public.reports.post_id",
+    "role_name": "authenticated",
+  },
+  {
+    "detail": "INSERT",
+    "kind": "column",
+    "object_name": "public.reports.reason",
+    "role_name": "authenticated",
+  },
+  {
+    "detail": "INSERT",
+    "kind": "column",
+    "object_name": "public.user_devices.device_id",
+    "role_name": "authenticated",
+  },
+  {
+    "detail": "INSERT",
+    "kind": "column",
+    "object_name": "public.user_devices.platform",
+    "role_name": "authenticated",
+  },
+  {
+    "detail": "EXECUTE",
+    "kind": "default_privilege",
+    "object_name": "* functions",
+    "role_name": "postgres",
+  },
+  {
+    "detail": "EXECUTE",
+    "kind": "default_privilege",
+    "object_name": "public functions",
+    "role_name": "postgres",
+  },
+  {
+    "detail": "SELECT",
+    "kind": "default_privilege",
+    "object_name": "public sequences",
+    "role_name": "postgres",
+  },
+  {
+    "detail": "UPDATE",
+    "kind": "default_privilege",
+    "object_name": "public sequences",
+    "role_name": "postgres",
+  },
+  {
+    "detail": "USAGE",
+    "kind": "default_privilege",
+    "object_name": "public sequences",
+    "role_name": "postgres",
+  },
+  {
+    "detail": "DELETE",
+    "kind": "default_privilege",
+    "object_name": "public tables",
+    "role_name": "postgres",
+  },
+  {
+    "detail": "INSERT",
+    "kind": "default_privilege",
+    "object_name": "public tables",
+    "role_name": "postgres",
+  },
+  {
+    "detail": "MAINTAIN",
+    "kind": "default_privilege",
+    "object_name": "public tables",
+    "role_name": "postgres",
+  },
+  {
+    "detail": "REFERENCES",
+    "kind": "default_privilege",
+    "object_name": "public tables",
+    "role_name": "postgres",
+  },
+  {
+    "detail": "SELECT",
+    "kind": "default_privilege",
+    "object_name": "public tables",
+    "role_name": "postgres",
+  },
+  {
+    "detail": "TRIGGER",
+    "kind": "default_privilege",
+    "object_name": "public tables",
+    "role_name": "postgres",
+  },
+  {
+    "detail": "TRUNCATE",
+    "kind": "default_privilege",
+    "object_name": "public tables",
+    "role_name": "postgres",
+  },
+  {
+    "detail": "UPDATE",
+    "kind": "default_privilege",
+    "object_name": "public tables",
+    "role_name": "postgres",
+  },
+  {
+    "detail": "EXECUTE security definer",
+    "kind": "function",
+    "object_name": "private.account_restriction(target uuid)",
+    "role_name": "authenticated",
+  },
+  {
+    "detail": "EXECUTE security definer",
+    "kind": "function",
+    "object_name": "private.can_write()",
+    "role_name": "authenticated",
+  },
+  {
+    "detail": "EXECUTE security definer",
+    "kind": "function",
+    "object_name": "private.my_active_ban()",
+    "role_name": "authenticated",
+  },
+  {
+    "detail": "EXECUTE",
+    "kind": "function",
+    "object_name": "public.get_my_active_ban()",
+    "role_name": "authenticated",
+  },
+  {
+    "detail": "EXECUTE",
+    "kind": "function",
+    "object_name": "public.restriction(public.profiles)",
+    "role_name": "authenticated",
+  },
+  {
+    "detail": "SELECT using ((EXISTS ( SELECT 1
+   FROM public.comments
+  WHERE (comments.id = comment_edits.comment_id)))) check (-)",
+    "kind": "policy",
+    "object_name": "public.comment_edits: Ves las versiones de las respuestas que puedes leer",
+    "role_name": "authenticated",
+  },
+  {
+    "detail": "SELECT using ((author_id = ( SELECT auth.uid() AS uid))) check (-)",
+    "kind": "policy",
+    "object_name": "public.comments: Cada quien lee sus propias respuestas",
+    "role_name": "authenticated",
+  },
+  {
+    "detail": "UPDATE using (((author_id = ( SELECT auth.uid() AS uid)) AND (status = 'visible'::text) AND (deleted_at IS NULL))) check (((author_id = ( SELECT auth.uid() AS uid)) AND ( SELECT private.can_write() AS can_write)))",
+    "kind": "policy",
+    "object_name": "public.comments: Editas o borras solo tus respuestas",
+    "role_name": "authenticated",
+  },
+  {
+    "detail": "SELECT using (((status = 'visible'::text) AND (deleted_at IS NULL) AND (EXISTS ( SELECT 1
+   FROM public.posts
+  WHERE ((posts.id = comments.post_id) AND (posts.status = 'visible'::text) AND (posts.deleted_at IS NULL)))))) check (-)",
+    "kind": "policy",
+    "object_name": "public.comments: Las sesiones leen las respuestas visibles de publicaciones visi",
+    "role_name": "authenticated",
+  },
+  {
+    "detail": "INSERT using (-) check (((author_id = ( SELECT auth.uid() AS uid)) AND (EXISTS ( SELECT 1
+   FROM public.profile_private
+  WHERE ((profile_private.user_id = ( SELECT auth.uid() AS uid)) AND (profile_private.rules_accepted_at IS NOT NULL)))) AND (EXISTS ( SELECT 1
+   FROM public.posts
+  WHERE ((posts.id = comments.post_id) AND (posts.status = 'visible'::text) AND (posts.deleted_at IS NULL)))) AND ( SELECT private.can_write() AS can_write)))",
+    "kind": "policy",
+    "object_name": "public.comments: Respondes como tú, con las reglas aceptadas, a publicaciones v",
+    "role_name": "authenticated",
+  },
+  {
+    "detail": "UPDATE using ((user_id = ( SELECT auth.uid() AS uid))) check ((user_id = ( SELECT auth.uid() AS uid)))",
+    "kind": "policy",
+    "object_name": "public.moderation_notices: Marcas como vistos tus avisos",
+    "role_name": "authenticated",
+  },
+  {
+    "detail": "SELECT using ((user_id = ( SELECT auth.uid() AS uid))) check (-)",
+    "kind": "policy",
+    "object_name": "public.moderation_notices: Ves tus avisos",
+    "role_name": "authenticated",
+  },
+  {
+    "detail": "SELECT using ((EXISTS ( SELECT 1
+   FROM public.posts
+  WHERE (posts.id = post_edits.post_id)))) check (-)",
+    "kind": "policy",
+    "object_name": "public.post_edits: Ves las versiones de las publicaciones que puedes leer",
+    "role_name": "authenticated",
+  },
+  {
+    "detail": "SELECT using ((author_id = ( SELECT auth.uid() AS uid))) check (-)",
+    "kind": "policy",
+    "object_name": "public.posts: Cada quien lee sus propias publicaciones",
+    "role_name": "authenticated",
+  },
+  {
+    "detail": "UPDATE using (((author_id = ( SELECT auth.uid() AS uid)) AND (status = 'visible'::text) AND (deleted_at IS NULL))) check (((author_id = ( SELECT auth.uid() AS uid)) AND ( SELECT private.can_write() AS can_write)))",
+    "kind": "policy",
+    "object_name": "public.posts: Editas o borras solo tus publicaciones",
+    "role_name": "authenticated",
+  },
+  {
+    "detail": "SELECT using (((status = 'visible'::text) AND (deleted_at IS NULL))) check (-)",
+    "kind": "policy",
+    "object_name": "public.posts: Las sesiones leen las publicaciones visibles",
+    "role_name": "authenticated",
+  },
+  {
+    "detail": "INSERT using (-) check (((author_id = ( SELECT auth.uid() AS uid)) AND (EXISTS ( SELECT 1
+   FROM public.profile_private
+  WHERE ((profile_private.user_id = ( SELECT auth.uid() AS uid)) AND (profile_private.rules_accepted_at IS NOT NULL)))) AND ( SELECT private.can_write() AS can_write)))",
+    "kind": "policy",
+    "object_name": "public.posts: Publicas como tú y después de aceptar las reglas",
+    "role_name": "authenticated",
+  },
+  {
+    "detail": "UPDATE using ((user_id = ( SELECT auth.uid() AS uid))) check ((user_id = ( SELECT auth.uid() AS uid)))",
+    "kind": "policy",
+    "object_name": "public.profile_private: Aceptas las reglas en tu perfil",
+    "role_name": "authenticated",
+  },
+  {
+    "detail": "SELECT using ((user_id = ( SELECT auth.uid() AS uid))) check (-)",
+    "kind": "policy",
+    "object_name": "public.profile_private: Ves tus datos privados",
+    "role_name": "authenticated",
+  },
+  {
+    "detail": "UPDATE using ((( SELECT auth.uid() AS uid) = id)) check ((( SELECT auth.uid() AS uid) = id))",
+    "kind": "policy",
+    "object_name": "public.profiles: Cada quien edita solo su perfil",
+    "role_name": "authenticated",
+  },
+  {
+    "detail": "SELECT using (true) check (-)",
+    "kind": "policy",
+    "object_name": "public.profiles: Las sesiones pueden leer los perfiles",
+    "role_name": "authenticated",
+  },
+  {
+    "detail": "INSERT using (-) check (((reporter_id = ( SELECT auth.uid() AS uid)) AND (EXISTS ( SELECT 1
+   FROM public.profile_private
+  WHERE ((profile_private.user_id = ( SELECT auth.uid() AS uid)) AND (profile_private.rules_accepted_at IS NOT NULL)))) AND ((EXISTS ( SELECT 1
+   FROM public.posts
+  WHERE ((posts.id = reports.post_id) AND (posts.status = 'visible'::text) AND (posts.deleted_at IS NULL) AND (posts.author_id <> ( SELECT auth.uid() AS uid))))) OR (EXISTS ( SELECT 1
+   FROM public.comments
+  WHERE ((comments.id = reports.comment_id) AND (comments.status = 'visible'::text) AND (comments.deleted_at IS NULL) AND (comments.author_id <> ( SELECT auth.uid() AS uid)))))) AND ( SELECT private.can_write() AS can_write)))",
+    "kind": "policy",
+    "object_name": "public.reports: Reportas con las reglas aceptadas algo visible que no es tuyo",
+    "role_name": "authenticated",
+  },
+  {
+    "detail": "INSERT using (-) check ((user_id = ( SELECT auth.uid() AS uid)))",
+    "kind": "policy",
+    "object_name": "public.user_devices: Registras tus teléfonos",
+    "role_name": "authenticated",
+  },
+  {
+    "detail": "SELECT using ((user_id = ( SELECT auth.uid() AS uid))) check (-)",
+    "kind": "policy",
+    "object_name": "public.user_devices: Ves tus teléfonos",
+    "role_name": "authenticated",
+  },
+  {
+    "detail": "enabled",
+    "kind": "rls",
+    "object_name": "private.alias_words",
+    "role_name": null,
+  },
+  {
+    "detail": "enabled",
+    "kind": "rls",
+    "object_name": "private.bans",
+    "role_name": null,
+  },
+  {
+    "detail": "enabled",
+    "kind": "rls",
+    "object_name": "private.flag_words",
+    "role_name": null,
+  },
+  {
+    "detail": "enabled",
+    "kind": "rls",
+    "object_name": "private.moderation_actions",
+    "role_name": null,
+  },
+  {
+    "detail": "enabled",
+    "kind": "rls",
+    "object_name": "private.moderators",
+    "role_name": null,
+  },
+  {
+    "detail": "enabled",
+    "kind": "rls",
+    "object_name": "private.review_items",
+    "role_name": null,
+  },
+  {
+    "detail": "enabled",
+    "kind": "rls",
+    "object_name": "public.comment_edits",
+    "role_name": null,
+  },
+  {
+    "detail": "enabled",
+    "kind": "rls",
+    "object_name": "public.comments",
+    "role_name": null,
+  },
+  {
+    "detail": "enabled",
+    "kind": "rls",
+    "object_name": "public.moderation_notices",
+    "role_name": null,
+  },
+  {
+    "detail": "enabled",
+    "kind": "rls",
+    "object_name": "public.post_edits",
+    "role_name": null,
+  },
+  {
+    "detail": "enabled",
+    "kind": "rls",
+    "object_name": "public.posts",
+    "role_name": null,
+  },
+  {
+    "detail": "enabled",
+    "kind": "rls",
+    "object_name": "public.profile_private",
+    "role_name": null,
+  },
+  {
+    "detail": "enabled",
+    "kind": "rls",
+    "object_name": "public.profiles",
+    "role_name": null,
+  },
+  {
+    "detail": "enabled",
+    "kind": "rls",
+    "object_name": "public.reports",
+    "role_name": null,
+  },
+  {
+    "detail": "enabled",
+    "kind": "rls",
+    "object_name": "public.user_devices",
+    "role_name": null,
+  },
+  {
+    "detail": "USAGE",
+    "kind": "schema",
+    "object_name": "private",
+    "role_name": "authenticated",
+  },
+  {
+    "detail": "USAGE",
+    "kind": "schema",
+    "object_name": "public",
+    "role_name": "anon",
+  },
+  {
+    "detail": "USAGE",
+    "kind": "schema",
+    "object_name": "public",
+    "role_name": "authenticated",
+  },
+  {
+    "detail": "SELECT",
+    "kind": "table",
+    "object_name": "public.comment_edits",
+    "role_name": "authenticated",
+  },
+  {
+    "detail": "SELECT",
+    "kind": "table",
+    "object_name": "public.comments",
+    "role_name": "authenticated",
+  },
+  {
+    "detail": "SELECT",
+    "kind": "table",
+    "object_name": "public.moderation_notices",
+    "role_name": "authenticated",
+  },
+  {
+    "detail": "SELECT",
+    "kind": "table",
+    "object_name": "public.post_edits",
+    "role_name": "authenticated",
+  },
+  {
+    "detail": "SELECT",
+    "kind": "table",
+    "object_name": "public.posts",
+    "role_name": "authenticated",
+  },
+  {
+    "detail": "SELECT",
+    "kind": "table",
+    "object_name": "public.profile_private",
+    "role_name": "authenticated",
+  },
+  {
+    "detail": "SELECT",
+    "kind": "table",
+    "object_name": "public.profiles",
+    "role_name": "authenticated",
+  },
+  {
+    "detail": "SELECT",
+    "kind": "table",
+    "object_name": "public.user_devices",
+    "role_name": "authenticated",
+  },
+]
+`;
