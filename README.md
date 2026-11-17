@@ -3,7 +3,7 @@
 Foro móvil anónimo para la materia de Desarrollo de Aplicaciones Móviles. Entras sin correo ni
 contraseña: la app te da un alias al azar (por ejemplo `farol-veloz`) y con él publicas y comentas.
 
-- **App:** Expo SDK 57 + React Native + TypeScript, en `app/`.
+- **App:** Expo SDK 58 + React Native + TypeScript, en `app/`.
 - **Backend:** Supabase (sesiones anónimas, PostgreSQL y Row Level Security), en `supabase/`.
 
 ## Cómo correrla
