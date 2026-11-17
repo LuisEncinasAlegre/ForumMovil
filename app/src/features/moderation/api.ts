@@ -3,8 +3,7 @@
 import { supabase } from '@/lib/supabase';
 
 import type { ActiveBan, DeviceInfo, ModerationNotice, NoticeCategory } from './types';
-
-const NOTICE_COLUMNS = 'id, post_id, comment_id, category, message, excerpt, counts_as_warning, created_at';
+import { NOTICE_COLUMNS } from './columns';
 
 // RLS ya limita a tus avisos. Los retirados (moderación lo restauró) no se muestran.
 export async function fetchUnseenNotices(): Promise<ModerationNotice[]> {
