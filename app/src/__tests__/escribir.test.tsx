@@ -30,7 +30,6 @@ const profile = {
   display_name: 'farol-veloz',
   color: null,
   rules_accepted_at: '2026-11-15T00:00:00Z',
-  created_at: '2026-11-15T00:00:00Z',
 };
 
 const post = {

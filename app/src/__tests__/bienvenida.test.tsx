@@ -15,7 +15,6 @@ const profile = {
   display_name: 'farol-veloz',
   color: null,
   rules_accepted_at: null,
-  created_at: '2026-11-15T00:00:00Z',
 };
 
 function mockWelcome(state: Partial<WelcomeState>): WelcomeState {

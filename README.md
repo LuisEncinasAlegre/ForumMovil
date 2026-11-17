@@ -50,9 +50,10 @@ de prueba. Ese archivo no se sube. En GitHub Actions los mismos valores van como
 repositorio: `EXPO_PUBLIC_SUPABASE_URL`, `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY`,
 `SUPABASE_SECRET_KEY` y `MODERATOR_TEST_TOKEN`.
 
-Cada corrida crea usuarios anónimos, y Supabase permite 30 inicios de sesión anónimos por hora
-desde la misma IP. Si sale `Request rate limit reached`, espera o sube el límite en
-**Authentication → Rate Limits**.
+Cada corrida crea unos 40 usuarios anónimos. En desarrollo el límite de inicios de sesión anónimos
+está alto (**Authentication → Rate Limits**); si sale `Request rate limit reached`, espera o súbelo.
+
+Qué prueban, cómo actualizar la instantánea de permisos y los límites conocidos: [SECURITY.md](SECURITY.md).
 
 ## Moderación
 
