@@ -2,11 +2,9 @@
 import { supabase } from '@/lib/supabase';
 
 import type { CommentEdit, ThreadComment } from './types';
+import { COMMENT_COLUMNS } from './columns';
 
 export const COMMENTS_PAGE_SIZE = 50;
-
-// El alias viene de profiles por la llave foránea author_id (una sola consulta).
-const COMMENT_COLUMNS = 'id, post_id, content, created_at, edited_at, author:profiles(id, display_name, color, restriction)';
 
 // La respuesta se borró, la ocultó moderación o no es tuya: el update no encontró la fila.
 export class CommentNotEditableError extends Error {

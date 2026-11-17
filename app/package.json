@@ -54,7 +54,11 @@
     "lint": "expo lint",
     "tsc": "tsc --noEmit",
     "test": "jest --passWithNoTests",
-    "test:db": "jest --config db-tests/jest.config.js --ci"
+    "test:db": "jest --config db-tests/jest.config.js --ci",
+    "load:pool": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON load-tests/run.ts pool",
+    "load:seed": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON load-tests/run.ts seed",
+    "load:run": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON load-tests/run.ts run",
+    "load:clean": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON load-tests/run.ts clean"
   },
   "private": true,
   "jest": {

@@ -55,6 +55,28 @@ está alto (**Authentication → Rate Limits**); si sale `Request rate limit rea
 
 Qué prueban, cómo actualizar la instantánea de permisos y los límites conocidos: [SECURITY.md](SECURITY.md).
 
+### Prueba de carga
+
+Simula a muchas personas usando la app a la vez contra el proyecto del `.env`. Usa los mismos
+archivos que `test:db`. **Nunca la corras contra un proyecto con usuarios reales.**
+
+| Comando | Qué hace |
+| --- | --- |
+| `npm run load:pool -- --perfil humo` | Crea los usuarios simulados del perfil (10, 60 o 120): sesión anónima, reglas aceptadas y un teléfono `carga-…` |
+| `npm run load:seed -- --posts 2000 --respuestas 3` | Llena el foro con publicaciones y respuestas de esos usuarios |
+| `npm run load:run -- --perfil humo` | Corre la carga y muestra p50/p95/p99 y errores por llamada; guarda el resultado en `load-tests/results/` |
+| `npm run load:clean` | Borra a todos los usuarios `carga-…` y lo que escribieron |
+
+Perfiles: `humo` (1 vuelta/s, la línea base), `clase` (unas 40 personas, 8 vueltas/s) y `estres`
+(sube hasta 32 vueltas/s). Corre `humo` primero: `clase` y `estres` comparan sus lecturas contra él.
+
+- Los tokens duran una hora y no se refrescan: `pool`, `seed` y `run` van en la misma hora.
+- Cada usuario cuenta para el límite de inicios de sesión anónimos por hora; revísalo antes.
+- Si una corrida se cae, `load:clean` encuentra a los usuarios por su teléfono `carga-…`.
+- [`load-tests/queries.sql`](app/load-tests/queries.sql) tiene las consultas para el SQL editor:
+  reiniciar las estadísticas, ver las consultas más lentas y el plan del foro.
+- Las partes sin red (percentiles, errores, escenario y reloj) tienen pruebas en `npm test`.
+
 ## Moderación
 
 La moderación se hace a mano con un servidor MCP (la Edge Function `moderacion`). Las revisiones
