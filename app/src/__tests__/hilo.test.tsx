@@ -2,7 +2,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { render, screen, userEvent, waitFor } from '@testing-library/react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import type { ReactNode } from 'react';
-import { Alert } from 'react-native';
+import { Platform } from 'react-native';
 
 import { createComment, fetchCommentsPage, updateComment } from '@/features/comments/api';
 import { useMyBan } from '@/features/moderation/useMyBan';
@@ -70,6 +70,18 @@ const myReply = {
   edited_at: null,
   author: { id: me.id, display_name: me.display_name, color: null, restriction: null },
 };
+
+type TestUser = ReturnType<typeof userEvent.setup>;
+
+// En iOS la acción corre cuando el Modal avisa que ya se cerró (onDismiss), y el mock de Jest
+// nunca lo avisa. Para elegir una opción usamos el camino de Android, que la corre al tocarla.
+async function chooseInSheet(user: TestUser, label: string): Promise<void> {
+  const platform = jest.replaceProperty(Platform, 'OS', 'android');
+  // la hoja se pinta al final; la pantalla puede tener un botón con el mismo texto
+  const buttons = screen.getAllByRole('button', { name: label });
+  await user.press(buttons[buttons.length - 1]);
+  platform.restore();
+}
 
 function renderWithQueryClient(children: ReactNode) {
   const queryClient = new QueryClient({
@@ -160,14 +172,11 @@ describe('ThreadScreen', () => {
     jest.mocked(fetchPost).mockResolvedValue(post);
     jest.mocked(fetchCommentsPage).mockResolvedValue([myReply]);
     jest.mocked(updateComment).mockResolvedValue({ ...myReply, content: '¿Las de los martes en el 5K? Gracias.' });
-    // el menú es un Alert nativo: tocamos "Editar" directamente
-    const alertSpy = jest.spyOn(Alert, 'alert').mockImplementation((_title, _message, buttons) => {
-      buttons?.find((button) => button.text === 'Editar')?.onPress?.();
-    });
     const user = userEvent.setup();
     await renderWithQueryClient(<ThreadScreen />);
 
     await user.press(await screen.findByRole('button', { name: 'Opciones de tu respuesta' }));
+    await chooseInSheet(user, 'Editar');
     expect(screen.getByText('Editando tu respuesta')).toBeOnTheScreen();
     const field = screen.getByLabelText('Texto de tu respuesta');
     expect(field).toHaveDisplayValue(myReply.content);
@@ -179,7 +188,6 @@ describe('ThreadScreen', () => {
 
     expect(updateComment).toHaveBeenCalledWith(31, '¿Las de los martes en el 5K? Gracias.');
     await waitFor(() => expect(screen.queryByText('Editando tu respuesta')).toBeNull());
-    alertSpy.mockRestore();
   });
 
   test('en mi publicación hay menú arriba', async () => {
@@ -193,34 +201,27 @@ describe('ThreadScreen', () => {
   test('en la publicación de otra persona, el menú de arriba lleva a Reportar', async () => {
     jest.mocked(fetchPost).mockResolvedValue(post);
     jest.mocked(fetchCommentsPage).mockResolvedValue([]);
-    const alertSpy = jest.spyOn(Alert, 'alert').mockImplementation((_title, _message, buttons) => {
-      expect(buttons?.map((button) => button.text)).toEqual(['Reportar', 'Cancelar']);
-      buttons?.find((button) => button.text === 'Reportar')?.onPress?.();
-    });
     const user = userEvent.setup();
     await renderWithQueryClient(<ThreadScreen />);
 
     await user.press(await screen.findByRole('button', { name: 'Opciones de la publicación' }));
+    expect(screen.queryByRole('button', { name: 'Eliminar' })).toBeNull();
+    await chooseInSheet(user, 'Reportar');
 
     expect(router.push).toHaveBeenCalledWith({ pathname: '/reportar', params: { postId: '7' } });
-    alertSpy.mockRestore();
   });
 
   test('la respuesta de otra persona tiene menú para reportarla', async () => {
     jest.mocked(fetchPost).mockResolvedValue(post);
     jest.mocked(fetchCommentsPage).mockResolvedValue([theirReply]);
-    const alertSpy = jest.spyOn(Alert, 'alert').mockImplementation((_title, _message, buttons) => {
-      expect(buttons?.map((button) => button.text)).toEqual(['Reportar', 'Cancelar']);
-      buttons?.find((button) => button.text === 'Reportar')?.onPress?.();
-    });
     const user = userEvent.setup();
     await renderWithQueryClient(<ThreadScreen />);
 
     await user.press(await screen.findByRole('button', { name: 'Opciones de la respuesta' }));
+    expect(screen.queryByRole('button', { name: 'Editar' })).toBeNull();
+    await chooseInSheet(user, 'Reportar');
 
-    expect(alertSpy).toHaveBeenCalledWith('Respuesta de nube-libre', undefined, expect.any(Array));
     expect(router.push).toHaveBeenCalledWith({ pathname: '/reportar', params: { commentId: '30' } });
-    alertSpy.mockRestore();
   });
 
   test('con la cuenta baneada no hay muelle para responder y el menú explica por qué', async () => {
@@ -232,10 +233,6 @@ describe('ThreadScreen', () => {
     });
     jest.mocked(fetchPost).mockResolvedValue(post);
     jest.mocked(fetchCommentsPage).mockResolvedValue([theirReply]);
-    const alertSpy = jest.spyOn(Alert, 'alert').mockImplementation((_title, _message, buttons) => {
-      expect(buttons?.map((button) => button.text)).toEqual(['Ver por qué', 'Cancelar']);
-      buttons?.find((button) => button.text === 'Ver por qué')?.onPress?.();
-    });
     const user = userEvent.setup();
     await renderWithQueryClient(<ThreadScreen />);
 
@@ -243,9 +240,9 @@ describe('ThreadScreen', () => {
     expect(screen.queryByPlaceholderText('Responde como farol-veloz')).toBeNull();
     expect(screen.getByText('Tu cuenta está baneada')).toBeOnTheScreen();
     await user.press(screen.getByRole('button', { name: 'Opciones de la respuesta' }));
+    expect(screen.getAllByText('Tu cuenta está baneada')).toHaveLength(2);
+    await chooseInSheet(user, 'Ver por qué');
 
-    expect(alertSpy).toHaveBeenCalledWith('Tu cuenta está baneada', expect.any(String), expect.any(Array));
     expect(router.push).toHaveBeenCalledWith('/suspendida');
-    alertSpy.mockRestore();
   });
 });

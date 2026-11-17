@@ -72,7 +72,7 @@ beforeEach(() => {
   jest.mocked(useUpdateMyColor).mockReturnValue({ mutate, isError: false, error: null } as never);
   jest.mocked(useMyPostCount).mockReturnValue({ isPending: false, data: 4 } as never);
   jest.mocked(useMyCommentCount).mockReturnValue({ isPending: false, data: 1 } as never);
-  jest.mocked(usePostMenu).mockReturnValue({ openPostMenu, deleteErrorMessage: null });
+  jest.mocked(usePostMenu).mockReturnValue({ openPostMenu, deleteErrorMessage: null, sheet: { content: null, isOpen: false }, closeSheet: jest.fn() });
 });
 
 describe('PerfilScreen', () => {

@@ -16,6 +16,7 @@ import { usePostMenu } from '@/features/posts/usePostMenu';
 import { useMyProfile } from '@/features/session/useMyProfile';
 import { space } from '@/theme/tokens';
 import { useTheme } from '@/theme/useTheme';
+import { ActionSheet } from '@/ui/ActionSheet';
 import { BackButton } from '@/ui/BackButton';
 import { Rule } from '@/ui/Rule';
 import { SettingRow } from '@/ui/SettingRow';
@@ -55,19 +56,35 @@ export default function PerfilScreen() {
     }
   }
 
-  function renderCounts(): string {
+  function renderCounts() {
+    if (postCount.isError || commentCount.isError) {
+      return (
+        <Pressable
+          accessibilityRole="button"
+          hitSlop={space.s3}
+          onPress={() => {
+            postCount.refetch();
+            commentCount.refetch();
+          }}>
+          <Text variant="small" color="ink2">
+            No pudimos contarlas. Reintentar
+          </Text>
+        </Pressable>
+      );
+    }
     if (postCount.isPending || commentCount.isPending) {
-      return '…';
+      return (
+        <Text variant="small" color="ink3" accessibilityLabel="Contando">
+          …
+        </Text>
+      );
     }
-    // si un conteo falla no inventamos el número; la lista tiene su propio aviso
-    const parts: string[] = [];
-    if (postCount.data !== undefined) {
-      parts.push(formatCount(postCount.data, 'publicación', 'publicaciones'));
-    }
-    if (commentCount.data !== undefined) {
-      parts.push(formatCount(commentCount.data, 'respuesta', 'respuestas'));
-    }
-    return parts.join(' · ');
+    return (
+      <Text variant="small" color="ink3">
+        {formatCount(postCount.data, 'publicación', 'publicaciones')} ·{' '}
+        {formatCount(commentCount.data, 'respuesta', 'respuestas')}
+      </Text>
+    );
   }
 
   function renderHeader() {
@@ -90,9 +107,7 @@ export default function PerfilScreen() {
           <Text variant="small" weight="semiBold" color="ink2">
             Lo que has escrito
           </Text>
-          <Text variant="small" color="ink3">
-            {renderCounts()}
-          </Text>
+          {renderCounts()}
         </View>
       </View>
     );
@@ -148,12 +163,21 @@ export default function PerfilScreen() {
     );
   }
 
+  // con tus publicaciones ya en pantalla, un error al actualizar se avisa en una línea
+  let notice: string | null = null;
+  if (myPosts.isRefetchError) {
+    notice = 'No pudimos actualizar tus publicaciones. Vuelve a abrir Perfil para reintentar.';
+  }
+  if (postMenu.deleteErrorMessage) {
+    notice = 'No pudimos eliminar tu publicación. ' + postMenu.deleteErrorMessage;
+  }
+
   return (
     <SafeAreaView style={[styles.screen, { backgroundColor: theme.paper }]} edges={['top', 'bottom']}>
       <TopBar left={<BackButton />} title="Perfil" />
-      {postMenu.deleteErrorMessage ? (
+      {notice ? (
         <Text variant="small" color="ink2" style={styles.line} accessibilityRole="alert">
-          {'No pudimos eliminar tu publicación. ' + postMenu.deleteErrorMessage}
+          {notice}
         </Text>
       ) : null}
       <FlatList
@@ -180,6 +204,7 @@ export default function PerfilScreen() {
         onEndReachedThreshold={0.5}
         keyboardShouldPersistTaps="handled"
       />
+      <ActionSheet sheet={postMenu.sheet} onClose={postMenu.closeSheet} />
     </SafeAreaView>
   );
 }

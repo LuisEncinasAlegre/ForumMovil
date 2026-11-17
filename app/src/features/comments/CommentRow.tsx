@@ -21,6 +21,7 @@ type CommentRowProps = {
 };
 
 // Respuesta dentro de un hilo (components/comment.elyx). Lista plana, sin anidar.
+// Mantener presionado abre el mismo menú que "⋯".
 export function CommentRow({
   comment,
   isMine,
@@ -30,9 +31,12 @@ export function CommentRow({
   onOpenEdits,
 }: CommentRowProps) {
   return (
-    <View
-      style={[styles.row, isPending && styles.pending]}
-      accessibilityLabel={isPending ? 'Enviando tu respuesta' : undefined}>
+    // accessible={false}: el lector de pantalla sigue llegando a "⋯" y "editado" por separado
+    <Pressable
+      accessible={false}
+      disabled={isPending}
+      onLongPress={() => onOpenMenu(comment)}
+      style={[styles.row, isPending && styles.pending]}>
       <View style={styles.meta}>
         <AliasTag author={comment.author} />
         {isByPostAuthor ? (
@@ -67,11 +71,13 @@ export function CommentRow({
           </Pressable>
         ) : null}
       </View>
-      <Text variant="body">{comment.content}</Text>
+      <Text variant="body" accessibilityLabel={isPending ? 'Enviando tu respuesta: ' + comment.content : undefined}>
+        {comment.content}
+      </Text>
       <View style={styles.foot}>
         <Rule />
       </View>
-    </View>
+    </Pressable>
   );
 }
 

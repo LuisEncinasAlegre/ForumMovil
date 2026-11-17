@@ -5,6 +5,7 @@ import { AliasTag } from '@/features/identity/AliasTag';
 import { useMyProfile } from '@/features/session/useMyProfile';
 import { fontFamily, fontSize, space } from '@/theme/tokens';
 import { useTheme } from '@/theme/useTheme';
+import { ActionSheet } from '@/ui/ActionSheet';
 import { Button } from '@/ui/Button';
 import { Rule } from '@/ui/Rule';
 import { Text } from '@/ui/Text';
@@ -33,8 +34,13 @@ export function ComposeForm({ postId, initialDraft }: ComposeFormProps) {
       <KeyboardAvoidingView style={styles.screen} behavior="padding">
         <TopBar
           left={
-            <Pressable accessibilityRole="button" hitSlop={space.s3} onPress={compose.cancel}>
-              <Text variant="body" weight="medium" color="ink2">
+            <Pressable
+              accessibilityRole="button"
+              accessibilityState={{ disabled: compose.isSaving }}
+              disabled={compose.isSaving}
+              hitSlop={space.s3}
+              onPress={compose.cancel}>
+              <Text variant="body" weight="medium" color={compose.isSaving ? 'ink3' : 'ink2'}>
                 Cancelar
               </Text>
             </Pressable>
@@ -91,13 +97,14 @@ export function ComposeForm({ postId, initialDraft }: ComposeFormProps) {
         </ScrollView>
         <View style={[styles.foot, { borderColor: theme.line }]}>
           <Text variant="small" color="ink2">
-            Directo, no cruel. Las reglas aplican.
+            Recuerda respetar las reglas de la comunidad.
           </Text>
           <Text variant="micro" color="ink3">
             {compose.contentLength} / {CONTENT_MAX_LENGTH}
           </Text>
         </View>
       </KeyboardAvoidingView>
+      <ActionSheet sheet={compose.discardSheet} onClose={compose.closeDiscardSheet} />
     </SafeAreaView>
   );
 }

@@ -10,6 +10,7 @@ type ModerationNoticesResult = {
   warningCount: number | null;
   isPending: boolean;
   isError: boolean;
+  refetch: () => void;
 };
 
 // Se vuelve a pedir al volver a la app (useAppStateFocus), así el aviso llega sin reiniciar.
@@ -33,5 +34,9 @@ export function useModerationNotices(): ModerationNoticesResult {
     warningCount: warningsQuery.data ?? null,
     isPending: noticesQuery.isPending,
     isError: noticesQuery.isError,
+    refetch: () => {
+      noticesQuery.refetch();
+      warningsQuery.refetch();
+    },
   };
 }
