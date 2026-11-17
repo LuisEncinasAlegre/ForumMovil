@@ -36,12 +36,20 @@ function mockQueryResult(result: { data: unknown; error: unknown }): QueryChain 
   return chain;
 }
 
+// Lo que devuelve Supabase: profiles con su fila de profile_private adentro.
+const profileRow = {
+  id: 'usuario-1',
+  display_name: 'farol-veloz',
+  color: null,
+  profile_private: { rules_accepted_at: null },
+};
+
+// Lo que devuelve api.ts: la misma información, plana.
 const profile = {
   id: 'usuario-1',
   display_name: 'farol-veloz',
   color: null,
   rules_accepted_at: null,
-  created_at: '2026-11-15T00:00:00Z',
 };
 
 describe('startAnonymousSession', () => {
@@ -61,12 +69,19 @@ describe('startAnonymousSession', () => {
 });
 
 describe('fetchMyProfile', () => {
-  test('busca el perfil por id', async () => {
-    const chain = mockQueryResult({ data: profile, error: null });
+  test('busca tu perfil con la fila de profile_private y lo devuelve plano', async () => {
+    const chain = mockQueryResult({ data: profileRow, error: null });
 
     await expect(fetchMyProfile('usuario-1')).resolves.toEqual(profile);
     expect(mockedSupabase.from).toHaveBeenCalledWith('profiles');
+    expect(chain.select).toHaveBeenCalledWith(expect.stringContaining('profile_private(rules_accepted_at)'));
     expect(chain.eq).toHaveBeenCalledWith('id', 'usuario-1');
+  });
+
+  test('sin fila privada, todavía no aceptaste las reglas', async () => {
+    mockQueryResult({ data: { ...profileRow, profile_private: null }, error: null });
+
+    await expect(fetchMyProfile('usuario-1')).resolves.toEqual(profile);
   });
 
   test('devuelve null si el perfil ya no existe', async () => {
@@ -83,13 +98,15 @@ describe('fetchMyProfile', () => {
 });
 
 describe('acceptRules', () => {
-  test('guarda la aceptación y devuelve el perfil actualizado', async () => {
-    const accepted = { ...profile, rules_accepted_at: '2026-11-15T01:00:00Z' };
-    const chain = mockQueryResult({ data: accepted, error: null });
+  test('guarda la aceptación en profile_private y devuelve el perfil actualizado', async () => {
+    const acceptedRow = { ...profileRow, profile_private: { rules_accepted_at: '2026-11-15T01:00:00Z' } };
+    // la misma cadena responde al update y a la lectura del perfil que le sigue
+    const chain = mockQueryResult({ data: acceptedRow, error: null });
 
-    await expect(acceptRules('usuario-1')).resolves.toEqual(accepted);
+    await expect(acceptRules('usuario-1')).resolves.toEqual({ ...profile, rules_accepted_at: '2026-11-15T01:00:00Z' });
+    expect(mockedSupabase.from).toHaveBeenCalledWith('profile_private');
     expect(chain.update).toHaveBeenCalledWith({ rules_accepted_at: expect.any(String) });
-    expect(chain.eq).toHaveBeenCalledWith('id', 'usuario-1');
+    expect(chain.eq).toHaveBeenCalledWith('user_id', 'usuario-1');
   });
 
   test('lanza el error de Supabase', async () => {
@@ -101,10 +118,9 @@ describe('acceptRules', () => {
 
 describe('updateMyColor', () => {
   test('guarda el color en tu perfil y lo devuelve', async () => {
-    const updated = { ...profile, color: '#8aaad2' };
-    const chain = mockQueryResult({ data: updated, error: null });
+    const chain = mockQueryResult({ data: { ...profileRow, color: '#8aaad2' }, error: null });
 
-    await expect(updateMyColor('usuario-1', '#8aaad2')).resolves.toEqual(updated);
+    await expect(updateMyColor('usuario-1', '#8aaad2')).resolves.toEqual({ ...profile, color: '#8aaad2' });
     expect(chain.update).toHaveBeenCalledWith({ color: '#8aaad2' });
     expect(chain.eq).toHaveBeenCalledWith('id', 'usuario-1');
   });

@@ -232,28 +232,48 @@ export type Database = {
           },
         ];
       };
+      profile_private: {
+        Row: {
+          created_at: string;
+          rules_accepted_at: string | null;
+          user_id: string;
+        };
+        Insert: {
+          created_at?: string;
+          rules_accepted_at?: string | null;
+          user_id: string;
+        };
+        Update: {
+          created_at?: string;
+          rules_accepted_at?: string | null;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'profile_private_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: true;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       profiles: {
         Row: {
           color: string | null;
-          created_at: string;
           display_name: string;
           id: string;
-          rules_accepted_at: string | null;
           restriction: string | null;
         };
         Insert: {
           color?: string | null;
-          created_at?: string;
           display_name: string;
           id: string;
-          rules_accepted_at?: string | null;
         };
         Update: {
           color?: string | null;
-          created_at?: string;
           display_name?: string;
           id?: string;
-          rules_accepted_at?: string | null;
         };
         Relationships: [];
       };
@@ -340,6 +360,15 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
+      audit_api_surface: {
+        Args: never;
+        Returns: {
+          detail: string;
+          kind: string;
+          object_name: string;
+          role_name: string;
+        }[];
+      };
       get_my_active_ban: {
         Args: never;
         Returns: {
