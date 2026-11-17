@@ -6,7 +6,7 @@ import {
   useFonts,
 } from '@expo-google-fonts/ibm-plex-sans';
 import { QueryClientProvider } from '@tanstack/react-query';
-import { Stack } from 'expo-router';
+import { DarkTheme, Stack, ThemeProvider, type Theme } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 
 import { useRegisterDevice } from '@/features/moderation/useRegisterDevice';
@@ -16,6 +16,21 @@ import { useMyProfile } from '@/features/session/useMyProfile';
 import { useSession } from '@/features/session/useSession';
 import { queryClient, useAppStateFocus } from '@/lib/query-client';
 import { colors } from '@/theme/tokens';
+
+// Tema del navegador con nuestros colores. Sin esto, React Navigation usa su fondo claro y se ve
+// un destello blanco detrás de las pantallas al entrar o volver.
+const navigationTheme: Theme = {
+  ...DarkTheme,
+  colors: {
+    ...DarkTheme.colors,
+    primary: colors.accent,
+    background: colors.paper,
+    card: colors.paper,
+    text: colors.ink,
+    border: colors.line,
+    notification: colors.accent,
+  },
+};
 
 export default function RootLayout() {
   const [fontsLoaded, fontError] = useFonts({
@@ -34,8 +49,10 @@ export default function RootLayout() {
   return (
     <QueryClientProvider client={queryClient}>
       <SessionProvider>
-        <StatusBar style="light" />
-        <RootNavigator />
+        <ThemeProvider value={navigationTheme}>
+          <StatusBar style="light" />
+          <RootNavigator />
+        </ThemeProvider>
       </SessionProvider>
     </QueryClientProvider>
   );
@@ -57,11 +74,17 @@ function RootNavigator() {
   return (
     <>
       <SplashScreenController isReady />
-      <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.paper } }}>
+      <Stack
+        screenOptions={{
+          headerShown: false,
+          contentStyle: { backgroundColor: colors.paper },
+          // la misma entrada lateral en Android que en iOS
+          animation: 'slide_from_right',
+        }}>
         <Stack.Protected guard={isInForum}>
           <Stack.Screen name="index" />
           {/* sin gesto para cerrar: así no se pierde un borrador (usePreventRemove es del SDK 58) */}
-          <Stack.Screen name="escribir" options={{ presentation: 'modal', gestureEnabled: false }} />
+          <Stack.Screen name="escribir" options={{ presentation: 'modal', animation: 'slide_from_bottom', gestureEnabled: false }} />
           <Stack.Screen name="hilo/[id]" />
           <Stack.Screen
             name="ediciones"
