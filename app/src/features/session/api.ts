@@ -4,6 +4,7 @@ import type { Session } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
 
 import type { Profile } from './types';
+import { MY_PROFILE_COLUMNS } from './columns';
 
 export async function startAnonymousSession(): Promise<Session> {
   const { data, error } = await supabase.auth.signInAnonymously();
@@ -25,9 +26,6 @@ export function onSessionChange(callback: (session: Session | null) => void): ()
   });
   return () => data.subscription.unsubscribe();
 }
-
-// La fila de profile_private viene en la misma consulta (relación uno a uno con profiles).
-const MY_PROFILE_COLUMNS = 'id, display_name, color, profile_private(rules_accepted_at)';
 
 type MyProfileRow = {
   id: string;
