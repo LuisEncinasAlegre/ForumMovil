@@ -17,8 +17,10 @@ export const queryClient = new QueryClient({
   mutationCache: new MutationCache({
     onError: (error) => {
       // si te suspendieron mientras escribías, así la app se entera sin esperar a que vuelvas
+      // y si el teléfono no se había podido registrar, se intenta otra vez
       if (hasErrorCode(error, ROW_SECURITY_ERROR)) {
         queryClient.invalidateQueries({ queryKey: ['ban'] });
+        queryClient.invalidateQueries({ queryKey: ['device'] });
       }
     },
   }),
