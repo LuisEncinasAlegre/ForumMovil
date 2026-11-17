@@ -59,8 +59,11 @@ const styles = StyleSheet.create({
   picker: {
     gap: space.s2,
   },
+  // en teléfonos angostos (320pt) los siete no caben en una fila: pasan a la siguiente
   swatches: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     justifyContent: 'space-between',
+    rowGap: space.s2,
   },
 });

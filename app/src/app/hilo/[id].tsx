@@ -20,6 +20,7 @@ import { usePostMenu } from '@/features/posts/usePostMenu';
 import { useMyProfile } from '@/features/session/useMyProfile';
 import { space } from '@/theme/tokens';
 import { useTheme } from '@/theme/useTheme';
+import { ActionSheet } from '@/ui/ActionSheet';
 import { BackButton } from '@/ui/BackButton';
 import { Message } from '@/ui/Message';
 import { MoreIcon } from '@/ui/MoreIcon';
@@ -96,15 +97,12 @@ export default function ThreadScreen() {
     }
     // mientras se envía la primera respuesta ya se ve abajo, tenue
     if (dock.pendingReply !== null) {
-      return null;
+      return undefined;
     }
     return (
       <View style={styles.quiet}>
         <Text variant="bodyLarge" weight="medium">
           Nadie ha respondido todavía.
-        </Text>
-        <Text variant="ui" color="ink2">
-          Puedes ser la primera voz.
         </Text>
       </View>
     );
@@ -154,7 +152,8 @@ export default function ThreadScreen() {
         </View>
       );
     }
-    if (postQuery.isError) {
+    // el error de pantalla completa solo cuando no hay nada guardado que mostrar
+    if (postQuery.isError && !post) {
       return (
         <Message
           title="No pudimos cargar el hilo."
@@ -250,6 +249,8 @@ export default function ThreadScreen() {
         </Text>
       ) : null}
       {renderBody()}
+      <ActionSheet sheet={postMenu.sheet} onClose={postMenu.closeSheet} />
+      <ActionSheet sheet={commentMenu.sheet} onClose={commentMenu.closeSheet} />
     </SafeAreaView>
   );
 }
@@ -265,6 +266,5 @@ const styles = StyleSheet.create({
   quiet: {
     paddingTop: space.s6,
     paddingHorizontal: space.gutter,
-    gap: space.s1,
   },
 });

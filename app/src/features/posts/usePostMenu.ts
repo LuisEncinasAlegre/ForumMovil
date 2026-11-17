@@ -1,8 +1,8 @@
 import { router } from 'expo-router';
-import { Alert } from 'react-native';
 
-import { showBlockedAlert } from '@/features/moderation/showBlockedAlert';
+import { blockedSheetContent } from '@/features/moderation/blockedSheet';
 import { useMyBan } from '@/features/moderation/useMyBan';
+import { useActionSheet, type ActionSheetState } from '@/ui/useActionSheet';
 
 import { getPostErrorMessage } from './postErrorMessage';
 import type { FeedPost } from './types';
@@ -17,53 +17,63 @@ type PostMenuOptions = {
 
 type PostMenu = {
   openPostMenu: (post: FeedPost, options: PostMenuOptions) => void;
+  // lo que la pantalla muestra con <ActionSheet />
+  sheet: ActionSheetState;
+  closeSheet: () => void;
   deleteErrorMessage: string | null;
 };
 
-// Menú "⋯" de las publicaciones, en el foro y en el hilo. Usamos Alert porque @expo/ui no tiene un menú para
-// iOS y Android en el SDK 57, y Alert permite justo tres botones en Android.
+// Menú "⋯" de las publicaciones, en el foro y en el hilo. Sin título: ya sabes qué tocaste.
 export function usePostMenu(): PostMenu {
   const deletePost = useDeletePost();
   const { ban } = useMyBan();
+  const { sheet, openSheet, closeSheet } = useActionSheet();
 
   function confirmDelete(post: FeedPost, options: PostMenuOptions): void {
-    Alert.alert('¿Eliminar esta publicación?', 'Ya no aparecerá en el foro. No se puede deshacer.', [
-      { text: 'Cancelar', style: 'cancel' },
-      {
-        text: 'Eliminar',
-        style: 'destructive',
-        onPress: () => deletePost.mutate(post.id, { onSuccess: options.onDeleted }),
-      },
-    ]);
+    openSheet({
+      title: '¿Eliminar esta publicación?',
+      message: 'Ya no aparecerá en el foro. No se puede deshacer.',
+      actions: [
+        {
+          label: 'Eliminar',
+          isDestructive: true,
+          onPress: () => deletePost.mutate(post.id, { onSuccess: options.onDeleted }),
+        },
+      ],
+    });
   }
 
   function openPostMenu(post: FeedPost, options: PostMenuOptions): void {
     if (ban) {
-      showBlockedAlert(ban);
+      openSheet(blockedSheetContent(ban));
       return;
     }
     if (!options.isMine) {
-      Alert.alert(post.title, undefined, [
-        {
-          text: 'Reportar',
-          onPress: () => router.push({ pathname: '/reportar', params: { postId: String(post.id) } }),
-        },
-        { text: 'Cancelar', style: 'cancel' },
-      ]);
+      openSheet({
+        actions: [
+          {
+            label: 'Reportar',
+            onPress: () => router.push({ pathname: '/reportar', params: { postId: String(post.id) } }),
+          },
+        ],
+      });
       return;
     }
-    Alert.alert(post.title, undefined, [
-      {
-        text: 'Editar',
-        onPress: () => router.push({ pathname: '/escribir', params: { postId: String(post.id) } }),
-      },
-      { text: 'Eliminar', style: 'destructive', onPress: () => confirmDelete(post, options) },
-      { text: 'Cancelar', style: 'cancel' },
-    ]);
+    openSheet({
+      actions: [
+        {
+          label: 'Editar',
+          onPress: () => router.push({ pathname: '/escribir', params: { postId: String(post.id) } }),
+        },
+        { label: 'Eliminar', isDestructive: true, onPress: () => confirmDelete(post, options) },
+      ],
+    });
   }
 
   return {
     openPostMenu,
+    sheet,
+    closeSheet,
     deleteErrorMessage: deletePost.error ? getPostErrorMessage(deletePost.error) : null,
   };
 }

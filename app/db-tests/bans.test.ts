@@ -236,6 +236,43 @@ describe('suspensiones y baneos', () => {
     });
   });
 
+  describe('dos cuentas baneadas en el mismo teléfono', () => {
+    const sharedDevice = `compartido-${runTag}`;
+    let carla: TestUser;
+    let dani: TestUser;
+
+    beforeAll(async () => {
+      carla = await signInWithRulesAccepted();
+      dani = await signInWithRulesAccepted();
+      await registerDevice(carla, sharedDevice);
+      await registerDevice(dani, sharedDevice);
+      for (const user of [carla, dani]) {
+        const { error } = await admin.rpc('mod_ban', { moderator_id: moderatorId, alias: user.alias, reason: 'Spam.' });
+        if (error) {
+          throw new Error('mod_ban falló: ' + error.message);
+        }
+      }
+    });
+
+    test('quitar el baneo de una no libera el teléfono que la otra tiene baneado', async () => {
+      const { error } = await admin.rpc('mod_unban', { moderator_id: moderatorId, alias: carla.alias });
+      const newAccount = await signInWithRulesAccepted();
+      await registerDevice(newAccount, sharedDevice);
+
+      expect(error).toBeNull();
+      expect(await tryToReply(dani, betoPostId)).toBe(RLS_ERROR);
+      expect(await tryToReply(newAccount, betoPostId)).toBe(RLS_ERROR);
+    });
+
+    test('al quitar también el de la otra, el teléfono queda libre', async () => {
+      const { error } = await admin.rpc('mod_unban', { moderator_id: moderatorId, alias: dani.alias });
+
+      expect(error).toBeNull();
+      expect(await tryToReply(carla, betoPostId)).toBeNull();
+      expect(await tryToReply(dani, betoPostId)).toBeNull();
+    });
+  });
+
   describe('permisos', () => {
     test('una sesión no puede llamar a mod_ban ni a mod_unban', async () => {
       const banned = await beto.client.rpc('mod_ban', { moderator_id: moderatorId, alias: ana.alias, reason: 'x' });

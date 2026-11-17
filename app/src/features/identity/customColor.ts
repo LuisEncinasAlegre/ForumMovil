@@ -4,9 +4,10 @@ import { colors } from '@/theme/tokens';
 // 4.5 es el contraste mínimo de WCAG para texto normal.
 const MIN_INITIALS_CONTRAST = 4.5;
 
-// Saturación y luz del tono propio en Android: parecidas a los predefinidos, así cualquier tono
-// se ve de la misma familia y las iniciales siempre se leen.
-const CUSTOM_SATURATION = 0.42;
+// Selector de color de Android: la luz va fija (parecida a los predefinidos) y la saturación va de
+// casi gris a viva. Así ningún color queda tan oscuro que no se lean las iniciales.
+export const MIN_CUSTOM_SATURATION = 0.15;
+export const MAX_CUSTOM_SATURATION = 0.75;
 const CUSTOM_LIGHTNESS = 0.68;
 
 type Rgb = { red: number; green: number; blue: number };
@@ -102,15 +103,25 @@ export function getContrastRatio(foreground: string, background: string): number
   return (lighter + 0.05) / (darker + 0.05);
 }
 
-// Tono (0–359) del deslizador de Android → color del sello.
-export function hueToHex(hue: number): string {
-  return rgbToHex(hslToRgb({ hue: hue % 360, saturation: CUSTOM_SATURATION, lightness: CUSTOM_LIGHTNESS }));
+export type HueSaturation = { hue: number; saturation: number };
+
+// Punto del selector de Android (tono 0–359, saturación) → color del sello, ya legible.
+export function hueSaturationToHex({ hue, saturation }: HueSaturation): string {
+  const clamped = Math.min(MAX_CUSTOM_SATURATION, Math.max(MIN_CUSTOM_SATURATION, saturation));
+  return makeSealReadable(rgbToHex(hslToRgb({ hue: hue % 360, saturation: clamped, lightness: CUSTOM_LIGHTNESS })));
 }
 
-// Color guardado → tono, para que el deslizador empiece donde estaba.
-export function hexToHue(hex: string): number {
-  return Math.round(rgbToHsl(hexToRgb(hex)).hue) % 360;
+// Color guardado → punto del selector, para que empiece donde estaba.
+export function hexToHueSaturation(hex: string): HueSaturation {
+  const hsl = rgbToHsl(hexToRgb(hex));
+  return {
+    hue: Math.round(hsl.hue) % 360,
+    saturation: Math.min(MAX_CUSTOM_SATURATION, Math.max(MIN_CUSTOM_SATURATION, hsl.saturation)),
+  };
 }
+
+// El gris de la parte baja del selector (saturación 0 con la misma luz).
+export const CUSTOM_GRAY = rgbToHex(hslToRgb({ hue: 0, saturation: 0, lightness: CUSTOM_LIGHTNESS }));
 
 // Si el color es tan oscuro que las iniciales no se leerían, lo aclaramos sin cambiar el tono.
 export function makeSealReadable(hex: string): string {

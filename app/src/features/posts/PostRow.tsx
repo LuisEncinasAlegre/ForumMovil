@@ -1,4 +1,4 @@
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View, type AccessibilityActionEvent } from 'react-native';
 
 import { AliasTag } from '@/features/identity/AliasTag';
 import { formatTimeAgo } from '@/lib/time';
@@ -21,16 +21,42 @@ type PostRowProps = {
 };
 
 // Fila del foro (components/post-row.elyx). Sin tarjeta: tipografía y una línea fina.
-// Toda la fila abre el hilo; "editado" y "⋯" tienen su propio toque encima.
+// Toda la fila abre el hilo; "editado" y "⋯" tienen su propio toque encima. Mantener presionado
+// abre el mismo menú que "⋯".
 export function PostRow({ post, isMine, onOpen, onOpenMenu, onOpenEdits, isCompact = false }: PostRowProps) {
   // la hora es cuándo se publicó, aunque después se haya editado
   const timeAgo = formatTimeAgo(post.created_at);
+  const replies = post.replyCount > 0 ? ', ' + formatReplyCount(post.replyCount) : '';
+
+  // Con lector de pantalla la fila es un solo elemento, así que "⋯" y "editado" van como acciones
+  // de la fila (VoiceOver y TalkBack no llegan a botones dentro de otro botón).
+  const accessibilityActions = [
+    { name: 'activate' },
+    { name: 'menu', label: isMine ? 'Opciones de tu publicación' : 'Opciones de la publicación' },
+    ...(post.edited_at ? [{ name: 'edits', label: 'Ver versiones anteriores' }] : []),
+  ];
+
+  function runAccessibilityAction(event: AccessibilityActionEvent): void {
+    if (event.nativeEvent.actionName === 'menu') {
+      onOpenMenu(post);
+      return;
+    }
+    if (event.nativeEvent.actionName === 'edits') {
+      onOpenEdits(post);
+      return;
+    }
+    onOpen(post);
+  }
 
   return (
     <Pressable
       accessibilityRole="button"
+      accessibilityLabel={`${post.title}. ${post.author.display_name}, ${timeAgo}${post.edited_at ? ', editado' : ''}${replies}`}
       accessibilityHint="Abre el hilo"
+      accessibilityActions={accessibilityActions}
+      onAccessibilityAction={runAccessibilityAction}
       onPress={() => onOpen(post)}
+      onLongPress={() => onOpenMenu(post)}
       style={({ pressed }) => [styles.row, pressed && styles.pressed]}>
       <View style={styles.meta}>
         <AliasTag author={post.author} />

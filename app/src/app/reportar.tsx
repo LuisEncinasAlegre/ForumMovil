@@ -1,5 +1,5 @@
 import { router, useLocalSearchParams } from 'expo-router';
-import { StyleSheet, View } from 'react-native';
+import { ScrollView, StyleSheet, useWindowDimensions, View } from 'react-native';
 
 import { ReasonOption } from '@/features/reports/ReasonOption';
 import { ReportSent } from '@/features/reports/ReportSent';
@@ -15,20 +15,24 @@ import { Message } from '@/ui/Message';
 import { Text } from '@/ui/Text';
 
 // Hoja para reportar una publicación o una respuesta (screens/reportar.elyx).
-// La hoja mide lo que su contenido (fitToContents), por eso aquí no se usa flex: 1.
+// La hoja mide lo que su contenido (fitToContents), por eso aquí no se usa flex: 1. Con letra muy
+// grande el contenido se desplaza en vez de cortar "Enviar reporte".
 export default function ReportScreen() {
   const params = useLocalSearchParams<{ postId?: string; commentId?: string }>();
   const target = parseReportTarget(params);
   const theme = useTheme();
+  const { height } = useWindowDimensions();
 
   return (
-    <View style={[styles.sheet, { backgroundColor: theme.surface }]}>
+    <ScrollView
+      style={[{ backgroundColor: theme.surface }, { maxHeight: height * SHEET_MAX_HEIGHT }]}
+      contentContainerStyle={styles.sheet}>
       {target ? (
         <ReportSheetBody target={target} />
       ) : (
         <Message title="No encontramos qué reportar." body="Cierra esta hoja y vuelve a intentarlo desde el foro." />
       )}
-    </View>
+    </ScrollView>
   );
 }
 
@@ -73,6 +77,9 @@ function ReportSheetBody({ target }: ReportSheetBodyProps) {
     </>
   );
 }
+
+// la hoja nunca pasa del 90% de la pantalla; lo demás se desplaza
+const SHEET_MAX_HEIGHT = 0.9;
 
 const styles = StyleSheet.create({
   sheet: {

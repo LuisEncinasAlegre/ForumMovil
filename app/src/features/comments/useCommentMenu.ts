@@ -1,8 +1,8 @@
 import { router } from 'expo-router';
-import { Alert } from 'react-native';
 
-import { showBlockedAlert } from '@/features/moderation/showBlockedAlert';
+import { blockedSheetContent } from '@/features/moderation/blockedSheet';
 import { useMyBan } from '@/features/moderation/useMyBan';
+import { useActionSheet, type ActionSheetState } from '@/ui/useActionSheet';
 
 import { getCommentErrorMessage } from './commentErrorMessage';
 import type { ThreadComment } from './types';
@@ -15,6 +15,9 @@ type CommentMenuOptions = {
 
 type CommentMenu = {
   openCommentMenu: (comment: ThreadComment, isMine: boolean) => void;
+  // lo que la pantalla muestra con <ActionSheet />
+  sheet: ActionSheetState;
+  closeSheet: () => void;
   deleteErrorMessage: string | null;
 };
 
@@ -23,38 +26,44 @@ type CommentMenu = {
 export function useCommentMenu({ onEdit }: CommentMenuOptions): CommentMenu {
   const deleteComment = useDeleteComment();
   const { ban } = useMyBan();
+  const { sheet, openSheet, closeSheet } = useActionSheet();
 
   function confirmDelete(comment: ThreadComment): void {
-    Alert.alert('¿Eliminar esta respuesta?', 'Ya no aparecerá en el hilo. No se puede deshacer.', [
-      { text: 'Cancelar', style: 'cancel' },
-      { text: 'Eliminar', style: 'destructive', onPress: () => deleteComment.mutate(comment.id) },
-    ]);
+    openSheet({
+      title: '¿Eliminar esta respuesta?',
+      message: 'Ya no aparecerá en el hilo. No se puede deshacer.',
+      actions: [{ label: 'Eliminar', isDestructive: true, onPress: () => deleteComment.mutate(comment.id) }],
+    });
   }
 
   function openCommentMenu(comment: ThreadComment, isMine: boolean): void {
     if (ban) {
-      showBlockedAlert(ban);
+      openSheet(blockedSheetContent(ban));
       return;
     }
     if (!isMine) {
-      Alert.alert('Respuesta de ' + comment.author.display_name, undefined, [
-        {
-          text: 'Reportar',
-          onPress: () => router.push({ pathname: '/reportar', params: { commentId: String(comment.id) } }),
-        },
-        { text: 'Cancelar', style: 'cancel' },
-      ]);
+      openSheet({
+        actions: [
+          {
+            label: 'Reportar',
+            onPress: () => router.push({ pathname: '/reportar', params: { commentId: String(comment.id) } }),
+          },
+        ],
+      });
       return;
     }
-    Alert.alert('Tu respuesta', undefined, [
-      { text: 'Editar', onPress: () => onEdit(comment) },
-      { text: 'Eliminar', style: 'destructive', onPress: () => confirmDelete(comment) },
-      { text: 'Cancelar', style: 'cancel' },
-    ]);
+    openSheet({
+      actions: [
+        { label: 'Editar', onPress: () => onEdit(comment) },
+        { label: 'Eliminar', isDestructive: true, onPress: () => confirmDelete(comment) },
+      ],
+    });
   }
 
   return {
     openCommentMenu,
+    sheet,
+    closeSheet,
     deleteErrorMessage: deleteComment.error ? getCommentErrorMessage(deleteComment.error) : null,
   };
 }

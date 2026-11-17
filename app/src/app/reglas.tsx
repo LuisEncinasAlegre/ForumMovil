@@ -18,7 +18,7 @@ export default function ReglasScreen() {
       <TopBar left={<BackButton />} title="Reglas" />
       <ScrollView>
         <Text variant="title" weight="medium" style={styles.intro}>
-          Son pocas y van en serio. Las aceptaste al entrar.
+          Aceptaste estas reglas al entrar.
         </Text>
         {COMMUNITY_RULES.map((rule, index) => (
           <View key={rule.title}>

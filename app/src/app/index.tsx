@@ -3,7 +3,6 @@ import { useState } from 'react';
 import { FlatList, Pressable, RefreshControl, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { SealMark } from '@/features/identity/SealMark';
 import { BlockedDock } from '@/features/moderation/BlockedDock';
 import { useMyBan } from '@/features/moderation/useMyBan';
 import { useShowBanOnFocus } from '@/features/moderation/useShowBanOnFocus';
@@ -17,6 +16,8 @@ import { usePostMenu } from '@/features/posts/usePostMenu';
 import { useMyProfile } from '@/features/session/useMyProfile';
 import { space } from '@/theme/tokens';
 import { useTheme } from '@/theme/useTheme';
+import { ActionSheet } from '@/ui/ActionSheet';
+import { LineIcon } from '@/ui/LineIcon';
 import { Message } from '@/ui/Message';
 import { Text } from '@/ui/Text';
 import { TopBar } from '@/ui/TopBar';
@@ -79,7 +80,7 @@ export default function ForoScreen() {
         />
       );
     }
-    return <Message title="Todavía nadie ha dicho nada." body="El foro está en silencio. La primera voz de hoy puede ser la tuya." />;
+    return <Message title="Todavía nadie ha dicho nada." />;
   }
 
   function renderFooter() {
@@ -95,7 +96,8 @@ export default function ForoScreen() {
         </Pressable>
       );
     }
-    return null;
+    // RN 0.88: las listas aceptan undefined (no null) para "sin pie"
+    return undefined;
   }
 
   // Si ya hay publicaciones y algo falla después, las dejamos y avisamos en una línea.
@@ -117,16 +119,14 @@ export default function ForoScreen() {
           </Text>
         }
         right={
-          profileQuery.data ? (
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="Tu perfil"
-              // el sello mide 32: así el área para tocar llega a 44
-              hitSlop={space.s2}
-              onPress={() => router.push('/perfil')}>
-              <SealMark profile={profileQuery.data} size="small" />
-            </Pressable>
-          ) : null
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Tu perfil"
+            // el ícono mide 24: así el área para tocar llega a 48
+            hitSlop={space.s3}
+            onPress={() => router.push('/perfil')}>
+            <LineIcon name="person" />
+          </Pressable>
         }
       />
       {notice ? (
@@ -170,6 +170,7 @@ export default function ForoScreen() {
           onPress={() => router.push('/escribir')}
         />
       )}
+      <ActionSheet sheet={postMenu.sheet} onClose={postMenu.closeSheet} />
     </SafeAreaView>
   );
 }
