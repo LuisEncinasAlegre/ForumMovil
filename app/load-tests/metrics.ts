@@ -22,6 +22,8 @@ export type ActionSummary = {
   p99: number;
   max: number;
   outcomes: Partial<Record<Outcome, number>>;
+  // cuántas veces salió cada código de error (42501, 503, …), para saber qué buscar
+  errorCodes: Record<string, number>;
 };
 
 type TimedResponse = {
@@ -97,8 +99,12 @@ export function summarize(metrics: Metrics, fromMs: number = 0, toMs: number = I
   for (const [name, samples] of samplesByName) {
     const sorted = samples.map((sample) => sample.milliseconds).sort((a, b) => a - b);
     const outcomes: Partial<Record<Outcome, number>> = {};
+    const errorCodes: Record<string, number> = {};
     for (const sample of samples) {
       outcomes[sample.outcome] = (outcomes[sample.outcome] ?? 0) + 1;
+      if (sample.code) {
+        errorCodes[sample.code] = (errorCodes[sample.code] ?? 0) + 1;
+      }
     }
     summaries.push({
       name,
@@ -108,6 +114,7 @@ export function summarize(metrics: Metrics, fromMs: number = 0, toMs: number = I
       p99: percentile(sorted, 99),
       max: sorted[sorted.length - 1],
       outcomes,
+      errorCodes,
     });
   }
   return summaries.sort((a, b) => a.name.localeCompare(b.name));

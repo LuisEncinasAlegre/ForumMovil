@@ -30,7 +30,7 @@ describe('summarize', () => {
     const rows = summarize(metrics, 0, 2000);
 
     expect(rows.map((row) => row.name)).toEqual(['foro', 'hilo']);
-    expect(rows[0]).toMatchObject({ count: 2, p50: 100, max: 300, outcomes: { ok: 1, server_error: 1 } });
+    expect(rows[0]).toMatchObject({ count: 2, p50: 100, max: 300, outcomes: { ok: 1, server_error: 1 }, errorCodes: { '503': 1 } });
     expect(rows[1]).toMatchObject({ count: 1, p95: 50 });
   });
 });
