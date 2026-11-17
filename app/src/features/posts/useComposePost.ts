@@ -1,7 +1,9 @@
 import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { Alert, BackHandler } from 'react-native';
+import { BackHandler } from 'react-native';
+
+import { useActionSheet, type ActionSheetState } from '@/ui/useActionSheet';
 
 import { getPostErrorMessage } from './postErrorMessage';
 import type { PostDraft } from './types';
@@ -28,6 +30,9 @@ export type ComposePostState = {
   errorMessage: string | null;
   submit: () => Promise<void>;
   cancel: () => void;
+  // la pregunta de descartar cambios (ui/ActionSheet)
+  discardSheet: ActionSheetState;
+  closeDiscardSheet: () => void;
 };
 
 // Lógica de la pantalla Escribir, para publicar o para editar.
@@ -36,6 +41,7 @@ export function useComposePost({ postId, initialDraft }: ComposePostOptions): Co
   const [content, setContent] = useState(initialDraft.content);
   const createPost = useCreatePost();
   const updatePost = useUpdatePost();
+  const { sheet: discardSheet, openSheet, closeSheet: closeDiscardSheet } = useActionSheet();
 
   const isEditing = postId !== null;
   const mutation = isEditing ? updatePost : createPost;
@@ -61,32 +67,41 @@ export function useComposePost({ postId, initialDraft }: ComposePostOptions): Co
     }
   }
 
+  function askToDiscard(): void {
+    openSheet({
+      title: '¿Descartar los cambios?',
+      message: 'Lo que escribiste no se va a guardar.',
+      actions: [{ label: 'Descartar', isDestructive: true, onPress: () => router.back() }],
+    });
+  }
+
   // Cerrar con cambios sin guardar pregunta primero. (usePreventRemove llega hasta el SDK 58.)
+  // Mientras se guarda no se puede cerrar: al terminar, submit ya vuelve atrás por su cuenta.
   function cancel(): void {
+    if (isSaving) {
+      return;
+    }
     if (!hasChanges) {
       router.back();
       return;
     }
-    Alert.alert('¿Descartar los cambios?', 'Lo que escribiste no se va a guardar.', [
-      { text: 'Seguir escribiendo', style: 'cancel' },
-      { text: 'Descartar', style: 'destructive', onPress: () => router.back() },
-    ]);
+    askToDiscard();
   }
 
   // Botón "atrás" de Android: misma pregunta que "Cancelar".
   useEffect(() => {
     const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
+      if (isSaving) {
+        return true;
+      }
       if (!hasChanges) {
         return false;
       }
-      Alert.alert('¿Descartar los cambios?', 'Lo que escribiste no se va a guardar.', [
-        { text: 'Seguir escribiendo', style: 'cancel' },
-        { text: 'Descartar', style: 'destructive', onPress: () => router.back() },
-      ]);
+      askToDiscard();
       return true;
     });
     return () => subscription.remove();
-  }, [hasChanges]);
+  });
 
   return {
     isEditing,
@@ -101,5 +116,7 @@ export function useComposePost({ postId, initialDraft }: ComposePostOptions): Co
     errorMessage: mutation.error ? getPostErrorMessage(mutation.error) : null,
     submit,
     cancel,
+    discardSheet,
+    closeDiscardSheet,
   };
 }

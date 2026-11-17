@@ -3,7 +3,7 @@ import Svg, { Path } from 'react-native-svg';
 import type { ThemeColors } from '@/theme/tokens';
 import { useTheme } from '@/theme/useTheme';
 
-type LineIconName = 'back' | 'send' | 'check' | 'chevron';
+type LineIconName = 'back' | 'send' | 'check' | 'chevron' | 'person';
 
 type LineIconProps = {
   name: LineIconName;
@@ -17,6 +17,7 @@ const ICON_PATHS: Record<LineIconName, string[]> = {
   send: ['M12 19V5', 'M6 11l6-6 6 6'],
   check: ['M5 12.5l4.5 4.5L19 7.5'],
   chevron: ['M9 6l6 6-6 6'],
+  person: ['M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8z', 'M4.5 20c1.2-3.6 4-5.5 7.5-5.5s6.3 1.9 7.5 5.5'],
 };
 
 // Íconos de línea del diseño. Son decorativos: el botón que los lleva tiene su propia etiqueta.

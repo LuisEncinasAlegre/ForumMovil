@@ -41,7 +41,7 @@ export default function WelcomeScreen() {
           {'Aquí hablas\nsin tu nombre.'}
         </Text>
         <Text variant="bodyLarge" color="ink2">
-          Un foro para lo que no dices en persona. Sin correo, sin contraseña, sin perfil.
+          Sin correo, contraseña ni perfil.
         </Text>
       </View>
 

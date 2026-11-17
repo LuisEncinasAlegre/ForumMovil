@@ -58,7 +58,7 @@ function mockFeed({ isPending = false, isError = false, posts }: FeedState) {
 
 beforeEach(() => {
   jest.mocked(useMyProfile).mockReturnValue({ data: profile } as never);
-  jest.mocked(usePostMenu).mockReturnValue({ openPostMenu: jest.fn(), deleteErrorMessage: null });
+  jest.mocked(usePostMenu).mockReturnValue({ openPostMenu: jest.fn(), deleteErrorMessage: null, sheet: { content: null, isOpen: false }, closeSheet: jest.fn() });
   jest.mocked(useMyBan).mockReturnValue({ ban: null, isPending: false, isError: false, refetch: jest.fn() });
 });
 
@@ -117,7 +117,7 @@ describe('ForoScreen', () => {
 
   test('todas las publicaciones tienen menú y el foro le dice cuál es mía', async () => {
     const openPostMenu = jest.fn();
-    jest.mocked(usePostMenu).mockReturnValue({ openPostMenu, deleteErrorMessage: null });
+    jest.mocked(usePostMenu).mockReturnValue({ openPostMenu, deleteErrorMessage: null, sheet: { content: null, isOpen: false }, closeSheet: jest.fn() });
     const mine = { ...post, id: 8, title: 'La mía', author: { id: 'usuario-1', display_name: 'farol-veloz', color: null, restriction: null } };
     mockFeed({ posts: [mine, post] });
     const user = userEvent.setup();
