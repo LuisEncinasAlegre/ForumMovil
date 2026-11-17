@@ -1,39 +1,8 @@
 // Pruebas de las reglas de seguridad (RLS) de la tabla profiles.
 // Hablan con el proyecto de Supabase que está en .env, por eso no corren con `npm test`
 // sino con `npm run test:db`. Cada corrida crea dos usuarios anónimos nuevos.
-import { existsSync, readFileSync } from 'node:fs';
-import { parseEnv } from 'node:util';
-
-import { createClient, type SupabaseClient } from '@supabase/supabase-js';
-
-type TestUser = {
-  client: SupabaseClient;
-  userId: string;
-};
-
-if (!existsSync('.env')) {
-  throw new Error('Falta app/.env. Cópialo de .env.example y pon la URL y la llave publicable.');
-}
-// Leemos el .env a mano: Jest le da a cada prueba su propia copia de process.env
-// y Expo reemplaza process.env.EXPO_PUBLIC_X al compilar, así que ahí quedaría vacío.
-const env = parseEnv(readFileSync('.env', 'utf8'));
-const supabaseUrl = env.EXPO_PUBLIC_SUPABASE_URL ?? '';
-const supabaseKey = env.EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY ?? '';
-
-function createTestClient(): SupabaseClient {
-  return createClient(supabaseUrl, supabaseKey, {
-    auth: { persistSession: false, autoRefreshToken: false },
-  });
-}
-
-async function signInAsNewUser(): Promise<TestUser> {
-  const client = createTestClient();
-  const { data, error } = await client.auth.signInAnonymously();
-  if (error || !data.user) {
-    throw new Error('No se pudo iniciar sesión anónima: ' + error?.message);
-  }
-  return { client, userId: data.user.id };
-}
+import { createTestClient } from './helpers/clients';
+import { signInAsNewUser, type TestUser } from './helpers/users';
 
 describe('tabla profiles', () => {
   let ana: TestUser;
@@ -44,17 +13,17 @@ describe('tabla profiles', () => {
     beto = await signInAsNewUser();
   });
 
-  test('al crear la sesión se crea un perfil con alias', async () => {
+  test('al crear la sesión se crea un perfil con alias y su fila privada', async () => {
     const { data, error } = await ana.client
       .from('profiles')
-      .select('display_name, color, rules_accepted_at')
+      .select('display_name, color, profile_private(rules_accepted_at, created_at)')
       .eq('id', ana.userId)
       .single();
 
     expect(error).toBeNull();
     expect(data?.display_name).toMatch(/^[a-z]+-[a-z]+$/);
     expect(data?.color).toBeNull(); // todavía no elige color
-    expect(data?.rules_accepted_at).toBeNull();
+    expect(data?.profile_private).toEqual({ rules_accepted_at: null, created_at: expect.any(String) });
   });
 
   test('una sesión puede leer el perfil de otra', async () => {
@@ -116,17 +85,54 @@ describe('tabla profiles', () => {
   });
 
   test('la hora de aceptar las reglas la pone el servidor y no se puede borrar', async () => {
-    await ana.client.from('profiles').update({ rules_accepted_at: '2000-01-01T00:00:00Z' }).eq('id', ana.userId);
-    const accepted = await ana.client.from('profiles').select('rules_accepted_at').eq('id', ana.userId).single();
+    await ana.client
+      .from('profile_private')
+      .update({ rules_accepted_at: '2000-01-01T00:00:00Z' })
+      .eq('user_id', ana.userId);
+    const accepted = await ana.client
+      .from('profile_private')
+      .select('rules_accepted_at')
+      .eq('user_id', ana.userId)
+      .single();
     const acceptedAt = new Date(accepted.data?.rules_accepted_at);
 
     // aceptó hace menos de 5 minutos, no en el año 2000
     expect(Math.abs(Date.now() - acceptedAt.getTime())).toBeLessThan(5 * 60 * 1000);
 
-    await ana.client.from('profiles').update({ rules_accepted_at: null }).eq('id', ana.userId);
-    const afterClear = await ana.client.from('profiles').select('rules_accepted_at').eq('id', ana.userId).single();
+    await ana.client.from('profile_private').update({ rules_accepted_at: null }).eq('user_id', ana.userId);
+    const afterClear = await ana.client
+      .from('profile_private')
+      .select('rules_accepted_at')
+      .eq('user_id', ana.userId)
+      .single();
 
     expect(afterClear.data?.rules_accepted_at).toBe(accepted.data?.rules_accepted_at);
+  });
+
+  test('las fechas de tu perfil no las ve nadie más', async () => {
+    const othersRow = await beto.client.from('profile_private').select('*').eq('user_id', ana.userId);
+    const oldColumns = await beto.client.from('profiles').select('created_at').eq('id', ana.userId);
+
+    expect(othersRow.error).toBeNull();
+    expect(othersRow.data).toEqual([]); // RLS: solo tu fila
+    expect(oldColumns.error).not.toBeNull(); // la columna ya no existe en profiles
+  });
+
+  test('no puedo cambiar la fila privada de otra persona ni la fecha en que se creó', async () => {
+    const othersRules = await beto.client
+      .from('profile_private')
+      .update({ rules_accepted_at: new Date().toISOString() })
+      .eq('user_id', ana.userId)
+      .select();
+    const myCreatedAt = await beto.client
+      .from('profile_private')
+      .update({ created_at: '2000-01-01T00:00:00Z' })
+      .eq('user_id', beto.userId);
+    const insert = await beto.client.from('profile_private').insert({ user_id: beto.userId });
+
+    expect(othersRules.data).toEqual([]);
+    expect(myCreatedAt.error?.code).toBe('42501'); // sin permiso sobre esa columna
+    expect(insert.error?.code).toBe('42501');
   });
 
   test('sin sesión no se puede leer ningún perfil', async () => {

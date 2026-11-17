@@ -1,80 +1,19 @@
 // Pruebas de suspensiones y baneos: teléfonos, la regla private.can_write() en las políticas y
 // las funciones mod_ban / mod_unban. El cliente con la llave secreta hace lo que hace la Edge Function.
 // Igual que moderation.test.ts, necesitan db-tests/.env.test (ver db-tests/.env.example).
-import { existsSync, readFileSync } from 'node:fs';
 import { randomUUID } from 'node:crypto';
-import { parseEnv } from 'node:util';
 
-import { createClient, type SupabaseClient } from '@supabase/supabase-js';
+import { createAdminClient } from './helpers/clients';
+import { createPostAsAdmin } from './helpers/content';
+import { RLS_ERROR } from './helpers/errors';
+import {
+  fetchTestModeratorId,
+  registerDevice,
+  signInWithRulesAccepted,
+  type TestUser,
+} from './helpers/users';
 
-type TestUser = {
-  client: SupabaseClient;
-  userId: string;
-  alias: string;
-};
-
-if (!existsSync('.env') || !existsSync('db-tests/.env.test')) {
-  throw new Error('Faltan app/.env o app/db-tests/.env.test. Cópialos de sus .example.');
-}
-const env = parseEnv(readFileSync('.env', 'utf8'));
-const testEnv = parseEnv(readFileSync('db-tests/.env.test', 'utf8'));
-const supabaseUrl = env.EXPO_PUBLIC_SUPABASE_URL ?? '';
-const supabaseKey = env.EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY ?? '';
-const secretKey = testEnv.SUPABASE_SECRET_KEY ?? '';
-const moderatorToken = testEnv.MODERATOR_TEST_TOKEN ?? '';
-
-const admin = createClient(supabaseUrl, secretKey, {
-  auth: { persistSession: false, autoRefreshToken: false },
-});
-
-// error de Postgres cuando una política de RLS rechaza la fila
-const RLS_ERROR = '42501';
-
-function createTestClient(): SupabaseClient {
-  return createClient(supabaseUrl, supabaseKey, {
-    auth: { persistSession: false, autoRefreshToken: false },
-  });
-}
-
-// Sesión anónima con las reglas aceptadas. Sin teléfono: cada prueba decide si lo registra.
-async function signInAsMember(): Promise<TestUser> {
-  const client = createTestClient();
-  const { data, error } = await client.auth.signInAnonymously();
-  if (error || !data.user) {
-    throw new Error('No se pudo iniciar sesión anónima: ' + error?.message);
-  }
-  const accepted = await client
-    .from('profiles')
-    .update({ rules_accepted_at: new Date().toISOString() })
-    .eq('id', data.user.id)
-    .select('display_name')
-    .single();
-  if (accepted.error) {
-    throw new Error('No se pudieron aceptar las reglas: ' + accepted.error.message);
-  }
-  return { client, userId: data.user.id, alias: accepted.data.display_name };
-}
-
-async function registerDevice(user: TestUser, deviceId: string): Promise<void> {
-  const { error } = await user.client.from('user_devices').insert({ device_id: deviceId, platform: 'android' });
-  if (error) {
-    throw new Error('No se pudo registrar el teléfono: ' + error.message);
-  }
-}
-
-// Con la llave secreta y fecha de hace unos minutos, para no chocar con el límite de 2 por minuto.
-async function createTestPost(user: TestUser, title: string): Promise<number> {
-  const createdAt = new Date(Date.now() - 5 * 60 * 1000).toISOString();
-  const { data, error } = await admin
-    .from('posts')
-    .insert({ title, content: 'Texto de prueba.', author_id: user.userId, created_at: createdAt })
-    .select('id')
-    .single();
-  if (error || !data) {
-    throw new Error('No se pudo crear la publicación: ' + error?.message);
-  }
-  return data.id;
-}
+const admin = createAdminClient();
 
 async function tryToPost(user: TestUser): Promise<string | null> {
   const { error } = await user.client.from('posts').insert({ title: 'Intento', content: 'Hola.' });
@@ -102,16 +41,12 @@ describe('suspensiones y baneos', () => {
   const anaDevice = `ana-${runTag}`;
 
   beforeAll(async () => {
-    const whoami = await admin.rpc('mod_whoami', { token: moderatorToken });
-    if (whoami.error) {
-      throw new Error('MODERATOR_TEST_TOKEN no sirve: ' + whoami.error.message);
-    }
-    moderatorId = whoami.data;
-    ana = await signInAsMember();
-    beto = await signInAsMember();
+    moderatorId = await fetchTestModeratorId(admin);
+    ana = await signInWithRulesAccepted();
+    beto = await signInWithRulesAccepted();
     await registerDevice(beto, `beto-${runTag}`);
-    betoPostId = await createTestPost(beto, 'Publicación de Beto');
-    anaPostId = await createTestPost(ana, 'Publicación de Ana');
+    betoPostId = await createPostAsAdmin(admin, beto, 'Publicación de Beto');
+    anaPostId = await createPostAsAdmin(admin, ana, 'Publicación de Ana');
   });
 
   describe('teléfonos', () => {
@@ -229,7 +164,7 @@ describe('suspensiones y baneos', () => {
 
   describe('el teléfono baneado', () => {
     test('una cuenta nueva en el mismo teléfono tampoco puede escribir', async () => {
-      const otherAccount = await signInAsMember();
+      const otherAccount = await signInWithRulesAccepted();
       await registerDevice(otherAccount, anaDevice);
 
       expect(await tryToReply(otherAccount, betoPostId)).toBe(RLS_ERROR);
@@ -238,7 +173,7 @@ describe('suspensiones y baneos', () => {
     });
 
     test('límite conocido: una cuenta nueva con otro identificador sí puede', async () => {
-      const otherAccount = await signInAsMember();
+      const otherAccount = await signInWithRulesAccepted();
       await registerDevice(otherAccount, `otro-${runTag}`);
 
       expect(await tryToReply(otherAccount, betoPostId)).toBeNull();

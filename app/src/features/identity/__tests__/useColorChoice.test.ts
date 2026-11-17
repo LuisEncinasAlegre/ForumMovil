@@ -14,7 +14,6 @@ const profile: Profile = {
   display_name: 'farol-veloz',
   color: identityColors.anil,
   rules_accepted_at: '2026-11-15T00:00:00Z',
-  created_at: '2026-11-15T00:00:00Z',
 };
 
 function mockMutation(isError = false) {

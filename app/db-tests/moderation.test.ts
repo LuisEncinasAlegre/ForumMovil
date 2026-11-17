@@ -1,61 +1,17 @@
 // Pruebas de la moderación: revisiones automáticas, funciones mod_* y avisos al autor.
 // Además del .env necesitan db-tests/.env.test con SUPABASE_SECRET_KEY y MODERATOR_TEST_TOKEN
 // (ver db-tests/.env.example). El cliente con la llave secreta hace lo que hace la Edge Function.
-import { existsSync, readFileSync } from 'node:fs';
 import { randomUUID } from 'node:crypto';
-import { parseEnv } from 'node:util';
 
-import { createClient, type SupabaseClient } from '@supabase/supabase-js';
-
-type TestUser = {
-  client: SupabaseClient;
-  userId: string;
-};
+import { createAdminClient } from './helpers/clients';
+import { createPostAsAdmin } from './helpers/content';
+import { testEnv } from './helpers/env';
+import { fetchTestModeratorId, signInAsMember, type TestUser } from './helpers/users';
 
 type Target = { target_post_id: number | null; target_comment_id: number | null };
 
-if (!existsSync('.env') || !existsSync('db-tests/.env.test')) {
-  throw new Error('Faltan app/.env o app/db-tests/.env.test. Cópialos de sus .example.');
-}
-const env = parseEnv(readFileSync('.env', 'utf8'));
-const testEnv = parseEnv(readFileSync('db-tests/.env.test', 'utf8'));
-const supabaseUrl = env.EXPO_PUBLIC_SUPABASE_URL ?? '';
-const supabaseKey = env.EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY ?? '';
-const secretKey = testEnv.SUPABASE_SECRET_KEY ?? '';
-const moderatorToken = testEnv.MODERATOR_TEST_TOKEN ?? '';
-
-const admin = createClient(supabaseUrl, secretKey, {
-  auth: { persistSession: false, autoRefreshToken: false },
-});
-
-function createTestClient(): SupabaseClient {
-  return createClient(supabaseUrl, supabaseKey, {
-    auth: { persistSession: false, autoRefreshToken: false },
-  });
-}
-
-async function signInAsMember(): Promise<TestUser> {
-  const client = createTestClient();
-  const { data, error } = await client.auth.signInAnonymously();
-  if (error || !data.user) {
-    throw new Error('No se pudo iniciar sesión anónima: ' + error?.message);
-  }
-  const accepted = await client
-    .from('profiles')
-    .update({ rules_accepted_at: new Date().toISOString() })
-    .eq('id', data.user.id);
-  if (accepted.error) {
-    throw new Error('No se pudieron aceptar las reglas: ' + accepted.error.message);
-  }
-  // Como la app: sin un teléfono registrado no se puede escribir.
-  const registered = await client
-    .from('user_devices')
-    .insert({ device_id: `prueba-${data.user.id}`, platform: 'android' });
-  if (registered.error) {
-    throw new Error('No se pudo registrar el teléfono: ' + registered.error.message);
-  }
-  return { client, userId: data.user.id };
-}
+const admin = createAdminClient();
+const moderatorToken = testEnv.moderatorToken;
 
 // Los que reportan se crean con la API de administración para no gastar sesiones anónimas.
 async function createReporters(count: number): Promise<string[]> {
@@ -73,20 +29,9 @@ async function createReporters(count: number): Promise<string[]> {
   return reporterIds;
 }
 
-// Se insertan con la llave secreta y con fecha de hace unos minutos: aquí se crean muchas
-// publicaciones seguidas y el límite de 2 por minuto (probado en posts.test.ts) las frenaría.
-// Los triggers de revisión corren igual, sea quien sea quien inserta.
+// Aquí se crean muchas publicaciones seguidas, así que van con la llave secreta (ver helpers/content.ts).
 async function createTestPost(user: TestUser, title: string, content: string): Promise<number> {
-  const createdAt = new Date(Date.now() - 5 * 60 * 1000).toISOString();
-  const { data, error } = await admin
-    .from('posts')
-    .insert({ title, content, author_id: user.userId, created_at: createdAt })
-    .select('id')
-    .single();
-  if (error || !data) {
-    throw new Error('No se pudo crear la publicación: ' + error?.message);
-  }
-  return data.id;
+  return createPostAsAdmin(admin, user, title, content);
 }
 
 async function pendingReasons(target: Target): Promise<string[] | null> {
@@ -110,11 +55,7 @@ describe('moderación', () => {
   const runTag = randomUUID().slice(0, 8);
 
   beforeAll(async () => {
-    const whoami = await admin.rpc('mod_whoami', { token: moderatorToken });
-    if (whoami.error) {
-      throw new Error('MODERATOR_TEST_TOKEN no sirve: ' + whoami.error.message);
-    }
-    moderatorId = whoami.data;
+    moderatorId = await fetchTestModeratorId(admin);
     ana = await signInAsMember();
     beto = await signInAsMember();
     reporterIds = await createReporters(10);
