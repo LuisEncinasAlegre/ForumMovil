@@ -1,24 +1,14 @@
 import { fireEvent, render, screen } from '@testing-library/react-native';
 import type { ReactNode } from 'react';
 
-import { hueToHex } from '../customColor';
-// jest-expo corre como iOS, así que CustomColorControl es el de iOS; el de Android es HueSlider
+import { ColorField } from '../ColorField';
+import { hueSaturationToHex, MAX_CUSTOM_SATURATION, MIN_CUSTOM_SATURATION } from '../customColor';
+// jest-expo corre como iOS, así que CustomColorControl es el de iOS; el de Android es ColorField
 import { CustomColorControl as IosControl } from '../CustomColorControl';
-import { HueSlider } from '../HueSlider';
 
-type SliderMockProps = { value: number; onValueChange: (value: number) => void; testID?: string };
 type ColorPickerMockProps = { selection: string | null; onSelectionChange?: (value: string) => void; label?: string };
 
-// Los controles nativos de @expo/ui no existen en Jest: los cambiamos por vistas simples.
-jest.mock('@expo/ui', () => {
-  const { View: MockView } = jest.requireActual('react-native');
-  return {
-    Host: ({ children }: { children: ReactNode }) => <MockView>{children}</MockView>,
-    Slider: ({ value, onValueChange, testID }: SliderMockProps) => (
-      <MockView testID={testID} accessibilityValue={{ now: value }} onValueChange={onValueChange} />
-    ),
-  };
-});
+// El selector nativo de @expo/ui no existe en Jest: lo cambiamos por una vista simple.
 jest.mock('@expo/ui/swift-ui', () => {
   const { View: MockView } = jest.requireActual('react-native');
   return {
@@ -29,16 +19,45 @@ jest.mock('@expo/ui/swift-ui', () => {
   };
 });
 
-describe('HueSlider (Android)', () => {
-  test('el deslizador empieza en tu tono y al moverlo manda el color', async () => {
+// el campo mide 300 de ancho y 160 de alto
+async function renderField(color: string, onChangeColor: (hex: string) => void) {
+  await render(<ColorField color={color} onChangeColor={onChangeColor} />);
+  const field = screen.getByTestId('campo-de-color');
+  await fireEvent(field, 'layout', { nativeEvent: { layout: { x: 0, y: 0, width: 300, height: 160 } } });
+  return field;
+}
+
+describe('ColorField (Android y web)', () => {
+  test('tocar a la izquierda arriba da rojo vivo y abajo a la derecha casi gris', async () => {
     const onChangeColor = jest.fn();
-    await render(<HueSlider color={hueToHex(200)} onChangeColor={onChangeColor} />);
+    const field = await renderField('#8aaad2', onChangeColor);
 
-    expect(screen.getByText('Tono')).toBeOnTheScreen();
-    expect(screen.getByTestId('tono').props.accessibilityValue.now).toBeCloseTo(200, -1);
+    await fireEvent(field, 'responderGrant', { nativeEvent: { locationX: 0, locationY: 0 } });
+    expect(onChangeColor).toHaveBeenLastCalledWith(hueSaturationToHex({ hue: 0, saturation: MAX_CUSTOM_SATURATION }));
 
-    fireEvent(screen.getByTestId('tono'), 'valueChange', 30);
-    expect(onChangeColor).toHaveBeenCalledWith(hueToHex(30));
+    await fireEvent(field, 'responderMove', { nativeEvent: { locationX: 300, locationY: 160 } });
+    expect(onChangeColor).toHaveBeenLastCalledWith(hueSaturationToHex({ hue: 359, saturation: MIN_CUSTOM_SATURATION }));
+  });
+
+  test('arrastrar fuera del campo se queda en el borde', async () => {
+    const onChangeColor = jest.fn();
+    const field = await renderField('#8aaad2', onChangeColor);
+
+    await fireEvent(field, 'responderMove', { nativeEvent: { locationX: -40, locationY: 400 } });
+    expect(onChangeColor).toHaveBeenLastCalledWith(hueSaturationToHex({ hue: 0, saturation: MIN_CUSTOM_SATURATION }));
+  });
+
+  test('con lector de pantalla se ajusta el tono de 15 en 15', async () => {
+    const onChangeColor = jest.fn();
+    const start = hueSaturationToHex({ hue: 100, saturation: 0.5 });
+    const field = await renderField(start, onChangeColor);
+
+    expect(field).toHaveAccessibleName('Color propio');
+    const hueBefore = Number(/Tono (\d+)/.exec(field.props.accessibilityValue.text)?.[1]);
+    await fireEvent(field, 'accessibilityAction', { nativeEvent: { actionName: 'increment' } });
+
+    expect(screen.getByTestId('campo-de-color').props.accessibilityValue.text).toBe(`Tono ${hueBefore + 15} grados`);
+    expect(onChangeColor).toHaveBeenCalledTimes(1);
   });
 });
 
@@ -51,7 +70,7 @@ describe('CustomColorControl (iOS)', () => {
     expect(picker.props.accessibilityLabel).toBe('Elegir color');
     expect(picker.props.accessibilityHint).toBe('#8aaad2');
 
-    fireEvent(picker, 'selectionChange', '#123456FF');
+    await fireEvent(picker, 'selectionChange', '#123456FF');
     expect(onChangeColor).toHaveBeenCalledWith('#123456FF');
   });
 });
