@@ -56,3 +56,25 @@ jobs:
 
       - name: Check TypeScript
         run: npm run tsc
+
+      - name: Run tests
+        run: npm test
+
+      # Pruebas de seguridad contra el proyecto de Supabase de desarrollo. Las llaves vienen de los
+      # secretos del repositorio; los PR desde forks no las tienen y se saltan este paso.
+      - name: Run database tests
+        env:
+          SUPABASE_URL: ${{ secrets.EXPO_PUBLIC_SUPABASE_URL }}
+          SUPABASE_PUBLISHABLE_KEY: ${{ secrets.EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
+          SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+          MODERATOR_TEST_TOKEN: ${{ secrets.MODERATOR_TEST_TOKEN }}
+        run: |
+          if [ -z "$SUPABASE_SECRET_KEY" ]; then
+            echo "Sin secretos de Supabase: se saltan las pruebas de la base de datos."
+            exit 0
+          fi
+          printf 'EXPO_PUBLIC_SUPABASE_URL=%s\nEXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY=%s\n' \
+            "$SUPABASE_URL" "$SUPABASE_PUBLISHABLE_KEY" > .env
+          printf 'SUPABASE_SECRET_KEY=%s\nMODERATOR_TEST_TOKEN=%s\n' \
+            "$SUPABASE_SECRET_KEY" "$MODERATOR_TEST_TOKEN" > db-tests/.env.test
+          npm run test:db
