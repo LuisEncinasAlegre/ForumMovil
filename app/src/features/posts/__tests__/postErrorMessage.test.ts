@@ -20,8 +20,14 @@ describe('getPostErrorMessage', () => {
     expect(getPostErrorMessage(new PostNotEditableError())).toBe('Esta publicación ya no se puede editar.');
   });
 
+  test('sin permiso (RLS)', () => {
+    expect(getPostErrorMessage({ code: '42501', message: 'permission denied' })).toBe(
+      'No puedes publicar ahora. Revisa el estado de tu cuenta o inténtalo más tarde.',
+    );
+  });
+
   test('cualquier otra cosa', () => {
-    expect(getPostErrorMessage({ code: '42501', message: 'permission denied' })).toBe('Algo salió mal. Inténtalo otra vez.');
+    expect(getPostErrorMessage({ code: '50000', message: 'unexpected' })).toBe('Algo salió mal. Inténtalo otra vez.');
     expect(getPostErrorMessage('raro')).toBe('Algo salió mal. Inténtalo otra vez.');
   });
 });

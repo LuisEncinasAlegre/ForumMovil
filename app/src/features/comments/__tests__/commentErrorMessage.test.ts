@@ -10,9 +10,9 @@ describe('getCommentErrorMessage', () => {
     );
   });
 
-  test('la publicación ya no acepta respuestas', () => {
+  test('sin permiso (RLS): publicación cerrada o cuenta restringida', () => {
     expect(getCommentErrorMessage({ code: '42501', message: 'new row violates row-level security policy' })).toBe(
-      'Esta publicación ya no acepta respuestas.',
+      'No pudimos enviar tu respuesta. Puede que la publicación ya no esté o que tu cuenta esté restringida.',
     );
   });
 

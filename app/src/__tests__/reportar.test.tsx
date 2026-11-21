@@ -20,7 +20,7 @@ jest.mock('@/lib/supabase', () => ({ supabase: {} }));
 
 function renderWithQueryClient(children: ReactNode) {
   const queryClient = new QueryClient({
-    defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
+    defaultOptions: { queries: { retry: false, gcTime: Infinity }, mutations: { retry: false, gcTime: Infinity } },
   });
   return render(<QueryClientProvider client={queryClient}>{children}</QueryClientProvider>);
 }

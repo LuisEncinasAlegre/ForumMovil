@@ -21,9 +21,9 @@ export function getCommentErrorMessage(error: unknown): string {
   if (error.message === 'demasiadas_respuestas') {
     return 'Vas muy rápido. Espera un minuto antes de responder otra vez.';
   }
-  // RLS rechazó el insert: la publicación se borró o se ocultó mientras escribías
+  // RLS rechazó el insert: la publicación ya no acepta respuestas o la cuenta está restringida
   if (error.code === '42501') {
-    return 'Esta publicación ya no acepta respuestas.';
+    return 'No pudimos enviar tu respuesta. Puede que la publicación ya no esté o que tu cuenta esté restringida.';
   }
   // no cumple el check del largo del texto
   if (error.code === '23514') {

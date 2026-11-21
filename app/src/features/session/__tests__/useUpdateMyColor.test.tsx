@@ -56,6 +56,7 @@ describe('useUpdateMyColor', () => {
     await act(async () => {
       finishSave({ ...profile, color: '#8aaad2' });
     });
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(invalidate).toHaveBeenCalledWith({ queryKey: ['posts'] });
     expect(invalidate).toHaveBeenCalledWith({ queryKey: ['comments'] });
   });

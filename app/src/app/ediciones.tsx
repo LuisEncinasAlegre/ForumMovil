@@ -15,9 +15,11 @@ import { Text } from '@/ui/Text';
 // Hoja con las versiones de una publicación editada (screens/ediciones.elyx).
 export default function EditsScreen() {
   const params = useLocalSearchParams<{ postId: string }>();
-  const postId = Number(params.postId);
-  const postQuery = usePost(postId);
-  const editsQuery = usePostEdits(postId);
+  const parsedId = Number(params.postId);
+  // un id roto se trata como publicación que ya no está
+  const validPostId = Number.isInteger(parsedId) && parsedId > 0 ? parsedId : null;
+  const postQuery = usePost(validPostId);
+  const editsQuery = usePostEdits(validPostId);
   const theme = useTheme();
 
   function retry(): void {
@@ -35,14 +37,14 @@ export default function EditsScreen() {
         {postQuery.data ? <AliasTag author={postQuery.data.author} /> : null}
       </View>
 
-      {postQuery.isPending || editsQuery.isPending ? (
+      {validPostId !== null && (postQuery.isPending || editsQuery.isPending) ? (
         <>
           <PostRowGhost />
           <PostRowGhost fade={0.6} />
         </>
       ) : null}
 
-      {postQuery.isError || editsQuery.isError ? (
+      {validPostId !== null && (postQuery.isError || editsQuery.isError) ? (
         <Message
           title="No pudimos cargar las versiones."
           body="Revisa tu conexión y vuelve a intentarlo."
@@ -51,7 +53,7 @@ export default function EditsScreen() {
         />
       ) : null}
 
-      {postQuery.isSuccess && !postQuery.data ? (
+      {validPostId === null || (postQuery.isSuccess && !postQuery.data) ? (
         <Message title="Esta publicación ya no está." body="La eliminaron o ya no se puede ver." />
       ) : null}
 
