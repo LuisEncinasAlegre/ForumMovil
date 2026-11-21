@@ -15,9 +15,11 @@ import { Text } from '@/ui/Text';
 // Hoja con las versiones de una respuesta editada. Igual que la de publicaciones, sin título.
 export default function CommentEditsScreen() {
   const params = useLocalSearchParams<{ commentId: string }>();
-  const commentId = Number(params.commentId);
-  const commentQuery = useComment(commentId);
-  const editsQuery = useCommentEdits(commentId);
+  const parsedId = Number(params.commentId);
+  // un id roto se trata como respuesta que ya no está
+  const validCommentId = Number.isInteger(parsedId) && parsedId > 0 ? parsedId : null;
+  const commentQuery = useComment(validCommentId);
+  const editsQuery = useCommentEdits(validCommentId);
   const theme = useTheme();
 
   function retry(): void {
@@ -35,14 +37,14 @@ export default function CommentEditsScreen() {
         {commentQuery.data ? <AliasTag author={commentQuery.data.author} /> : null}
       </View>
 
-      {commentQuery.isPending || editsQuery.isPending ? (
+      {validCommentId !== null && (commentQuery.isPending || editsQuery.isPending) ? (
         <>
           <PostRowGhost />
           <PostRowGhost fade={0.6} />
         </>
       ) : null}
 
-      {commentQuery.isError || editsQuery.isError ? (
+      {validCommentId !== null && (commentQuery.isError || editsQuery.isError) ? (
         <Message
           title="No pudimos cargar las versiones."
           body="Revisa tu conexión y vuelve a intentarlo."
@@ -51,7 +53,7 @@ export default function CommentEditsScreen() {
         />
       ) : null}
 
-      {commentQuery.isSuccess && !commentQuery.data ? (
+      {validCommentId === null || (commentQuery.isSuccess && !commentQuery.data) ? (
         <Message title="Esta respuesta ya no está." body="La eliminaron o ya no se puede ver." />
       ) : null}
 

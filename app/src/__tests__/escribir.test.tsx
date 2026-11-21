@@ -129,4 +129,22 @@ describe('WriteScreen: editar', () => {
 
     expect(await screen.findByText('Esta publicación ya no se puede editar.')).toBeOnTheScreen();
   });
+
+  test('agregar solo espacios al final no activa Guardar', async () => {
+    jest.mocked(fetchPost).mockResolvedValue(post);
+    const user = userEvent.setup();
+    await renderWithQueryClient(<WriteScreen />);
+
+    expect(await screen.findByDisplayValue('Con 43 grados')).toBeOnTheScreen();
+    await user.type(screen.getByLabelText('Título'), '   ');
+    expect(screen.getByRole('button', { name: 'Guardar' })).toBeDisabled();
+  });
+
+  test('con un enlace roto no consulta Supabase y avisa que no se puede editar', async () => {
+    jest.mocked(useLocalSearchParams).mockReturnValue({ postId: 'abc' });
+    await renderWithQueryClient(<WriteScreen />);
+
+    expect(screen.getByText('Esta publicación ya no se puede editar.')).toBeOnTheScreen();
+    expect(fetchPost).not.toHaveBeenCalled();
+  });
 });

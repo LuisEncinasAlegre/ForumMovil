@@ -38,7 +38,7 @@ export function useWelcome(): WelcomeState {
       .finally(() => {
         isStartingRef.current = false;
       });
-  });
+  }, [isLoading, session, startError, startSession]);
 
   function retryAlias(): void {
     if (!session) {

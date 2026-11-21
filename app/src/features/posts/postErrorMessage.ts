@@ -21,6 +21,10 @@ export function getPostErrorMessage(error: unknown): string {
   if (error.message === 'demasiadas_publicaciones') {
     return 'Vas muy rápido. Espera un minuto antes de publicar otra vez.';
   }
+  // RLS rechazó la escritura: la cuenta está suspendida o el teléfono no está registrado
+  if (error.code === '42501') {
+    return 'No puedes publicar ahora. Revisa el estado de tu cuenta o inténtalo más tarde.';
+  }
   // no cumple un check (largo del título o del texto)
   if (error.code === '23514') {
     return 'Revisa el título y el texto: algo está fuera de los límites.';

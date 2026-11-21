@@ -45,7 +45,10 @@ export function useComposePost({ postId, initialDraft }: ComposePostOptions): Co
 
   const isEditing = postId !== null;
   const mutation = isEditing ? updatePost : createPost;
-  const hasChanges = title !== initialDraft.title || content !== initialDraft.content;
+  // al editar ignoramos espacios sobrantes al inicio o final, igual que al guardar en Supabase
+  const hasChanges = isEditing
+    ? title.trim() !== initialDraft.title.trim() || content.trim() !== initialDraft.content.trim()
+    : title !== initialDraft.title || content !== initialDraft.content;
   const isSaving = mutation.isPending;
   const canSubmit = isPostDraftValid({ title, content }) && hasChanges && !isSaving;
 
@@ -97,11 +100,15 @@ export function useComposePost({ postId, initialDraft }: ComposePostOptions): Co
       if (!hasChanges) {
         return false;
       }
-      askToDiscard();
+      openSheet({
+        title: '¿Descartar los cambios?',
+        message: 'Lo que escribiste no se va a guardar.',
+        actions: [{ label: 'Descartar', isDestructive: true, onPress: () => router.back() }],
+      });
       return true;
     });
     return () => subscription.remove();
-  });
+  }, [isSaving, hasChanges, openSheet]);
 
   return {
     isEditing,

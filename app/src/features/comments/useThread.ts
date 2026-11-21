@@ -18,7 +18,7 @@ export function useThread(postId: number): UseInfiniteQueryResult<InfiniteData<T
     queryFn: ({ pageParam }) => fetchCommentsPage(postId, pageParam),
     initialPageParam: null as number | null,
     getNextPageParam: getNextCommentsCursor,
-    // un id roto (NaN) no se pide
-    enabled: postId > 0,
+    // un id roto (NaN o decimal) no se pide
+    enabled: Number.isInteger(postId) && postId > 0,
   });
 }

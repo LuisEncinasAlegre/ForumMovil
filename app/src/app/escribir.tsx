@@ -16,17 +16,19 @@ const emptyDraft = { title: '', content: '' };
 // Escribir una publicación nueva, o editar una tuya con ?postId=12.
 export default function WriteScreen() {
   const params = useLocalSearchParams<{ postId?: string }>();
-  const postId = params.postId ? Number(params.postId) : null;
-  const postQuery = usePost(postId);
+  const isEditingParam = params.postId !== undefined;
+  const parsedId = isEditingParam ? Number(params.postId) : null;
+  const validPostId = parsedId !== null && Number.isInteger(parsedId) && parsedId > 0 ? parsedId : null;
+  const postQuery = usePost(validPostId);
   const theme = useTheme();
 
-  if (postId === null) {
+  if (!isEditingParam) {
     return <ComposeForm postId={null} initialDraft={emptyDraft} />;
   }
 
-  if (postQuery.data) {
+  if (validPostId !== null && postQuery.data) {
     return (
-      <ComposeForm postId={postId} initialDraft={{ title: postQuery.data.title, content: postQuery.data.content }} />
+      <ComposeForm postId={validPostId} initialDraft={{ title: postQuery.data.title, content: postQuery.data.content }} />
     );
   }
 
@@ -42,8 +44,8 @@ export default function WriteScreen() {
           </Pressable>
         }
       />
-      {postQuery.isPending ? <PostRowGhost /> : null}
-      {postQuery.isError ? (
+      {validPostId !== null && postQuery.isPending ? <PostRowGhost /> : null}
+      {validPostId !== null && postQuery.isError ? (
         <Message
           title="No pudimos cargar tu publicación."
           body="Revisa tu conexión y vuelve a intentarlo."
@@ -51,7 +53,7 @@ export default function WriteScreen() {
           onAction={() => postQuery.refetch()}
         />
       ) : null}
-      {postQuery.isSuccess ? (
+      {validPostId === null || postQuery.isSuccess ? (
         <Message title="Esta publicación ya no se puede editar." body="Puede que la hayas eliminado." />
       ) : null}
     </SafeAreaView>
