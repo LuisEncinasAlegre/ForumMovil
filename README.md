@@ -1,126 +1,118 @@
 # ForumMovil
 
-Foro móvil anónimo para la materia de Desarrollo de Aplicaciones Móviles. Entras sin correo ni
-contraseña: la app te da un alias al azar (por ejemplo `farol-veloz`) y con él publicas y comentas.
+Foro móvil anónimo desarrollado para la materia de Desarrollo de Aplicaciones Móviles. Permite compartir ideas, preguntas y opiniones sin correo ni contraseña: al entrar, la aplicación asigna un alias aleatorio y un sello de color personalizable para publicar, responder, editar con historial de versiones y reportar contenido.
 
-- **App:** Expo SDK 58 + React Native + TypeScript, en `app/`.
-- **Backend:** Supabase (sesiones anónimas, PostgreSQL y Row Level Security), en `supabase/`.
+Construido con Expo SDK 58, React Native y TypeScript en el cliente (`app/`), y Supabase (sesiones anónimas, PostgreSQL, Row Level Security y Edge Functions para moderación) en el backend (`supabase/`).
 
-## Cómo correrla
+## Capturas de pantalla
 
-### 1. Proyecto de Supabase
+<table>
+  <tr>
+    <td align="center">
+      <img src="docs/screenshots/bienvenida.png" alt="Pantalla de bienvenida" width="230" />
+      <br />
+      <sub>Bienvenida</sub>
+    </td>
+    <td align="center">
+      <img src="docs/screenshots/foro.png" alt="Pantalla del foro" width="230" />
+      <br />
+      <sub>Foro</sub>
+    </td>
+    <td align="center">
+      <img src="docs/screenshots/hilo.png" alt="Pantalla de hilo y respuestas" width="230" />
+      <br />
+      <sub>Hilo y respuestas</sub>
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <img src="docs/screenshots/escribir.png" alt="Pantalla para escribir publicación" width="230" />
+      <br />
+      <sub>Escribir publicación</sub>
+    </td>
+    <td align="center">
+      <img src="docs/screenshots/perfil.png" alt="Pantalla de perfil" width="230" />
+      <br />
+      <sub>Perfil</sub>
+    </td>
+    <td></td>
+  </tr>
+</table>
 
-1. Crea un proyecto en [supabase.com](https://supabase.com).
-2. En **Authentication → Sign In / Providers**, activa **Allow anonymous sign-ins**.
-3. En el **SQL Editor**, pega y corre cada archivo de `supabase/migrations/` en orden.
-4. En **Project Settings → API Keys**, copia la URL del proyecto y la llave publicable.
+## Cómo compilar y abrir
 
-### 2. Variables de entorno
+### Requisitos
+
+* Node.js 22 o superior
+* Una cuenta y proyecto en [Supabase](https://supabase.com)
+* Expo Go (SDK 58) en Android o iOS para pruebas rápidas, o Android Studio / Xcode para compilar de forma nativa
+
+### 1. Configurar el backend en Supabase
+
+1. Crea un proyecto nuevo en [supabase.com](https://supabase.com).
+2. En el panel de Supabase, ve a **Authentication > Sign In / Providers** y activa el inicio de sesión anónimo.
+3. Abre el **SQL Editor** y ejecuta en orden cada archivo dentro de `supabase/migrations/`.
+4. En **Project Settings > API Keys**, copia la URL del proyecto y la llave publicable.
+
+### 2. Configurar variables de entorno
+
+Dentro de la carpeta `app/`, crea tu archivo `.env` a partir del ejemplo:
 
 ```bash
 cd app
 cp .env.example .env
 ```
 
-Llena `.env` con la URL y la llave publicable. Nunca pongas aquí la llave secreta: todo lo que
-empieza con `EXPO_PUBLIC_` termina dentro de la app.
+Completa `.env` con los valores de tu proyecto de Supabase (`EXPO_PUBLIC_SUPABASE_URL` y `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY`). Nunca incluyas la llave secreta en este archivo.
 
-### 3. App
+### 3. Instalar dependencias y abrir la app
 
 ```bash
 cd app
 npm install
-npx expo start      # escanea el QR con Expo Go
+npx expo start
 ```
 
-## Comandos (dentro de `app/`)
+Escanea el código QR con **Expo Go** en tu teléfono o abre un emulador desde la terminal de Expo.
 
-| Comando | Qué hace |
-| --- | --- |
-| `npm run lint` | ESLint |
-| `npm run tsc` | Revisa los tipos de TypeScript |
-| `npm test` | Pruebas unitarias y de componentes |
-| `npm run test:db` | Pruebas de seguridad contra el proyecto de Supabase del `.env` (crea usuarios anónimos de prueba) |
+### 4. Compilar de forma nativa
 
-### Pruebas de la base de datos
-
-`npm run test:db` necesita, además de `app/.env`, el archivo `app/db-tests/.env.test`
-(cópialo de `db-tests/.env.example`) con la llave secreta del proyecto y el token de un moderador
-de prueba. Ese archivo no se sube. En GitHub Actions los mismos valores van como secretos del
-repositorio: `EXPO_PUBLIC_SUPABASE_URL`, `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY`,
-`SUPABASE_SECRET_KEY` y `MODERATOR_TEST_TOKEN`.
-
-Cada corrida crea unos 40 usuarios anónimos. En desarrollo el límite de inicios de sesión anónimos
-está alto (**Authentication → Rate Limits**); si sale `Request rate limit reached`, espera o súbelo.
-
-Qué prueban, cómo actualizar la instantánea de permisos y los límites conocidos: [SECURITY.md](SECURITY.md).
-
-### Prueba de carga
-
-Simula a muchas personas usando la app a la vez contra el proyecto del `.env`. Usa los mismos
-archivos que `test:db`. **Nunca la corras contra un proyecto con usuarios reales.**
-
-| Comando | Qué hace |
-| --- | --- |
-| `npm run load:pool -- --perfil humo` | Crea los usuarios simulados del perfil (10, 60 o 120): sesión anónima, reglas aceptadas y un teléfono `carga-…` |
-| `npm run load:seed -- --posts 2000 --respuestas 3` | Llena el foro con publicaciones y respuestas de esos usuarios |
-| `npm run load:run -- --perfil humo` | Corre la carga y muestra p50/p95/p99 y errores por llamada; guarda el resultado en `load-tests/results/` |
-| `npm run load:clean` | Borra a todos los usuarios `carga-…` y lo que escribieron |
-
-Perfiles: `humo` (1 vuelta/s, la línea base), `clase` (unas 40 personas, 8 vueltas/s) y `estres`
-(sube hasta 32 vueltas/s). Corre `humo` primero: `clase` y `estres` comparan sus lecturas contra él.
-
-- Los tokens duran una hora y no se refrescan: `pool`, `seed` y `run` van en la misma hora.
-- Cada usuario cuenta para el límite de inicios de sesión anónimos por hora; revísalo antes.
-- Si una corrida se cae, `load:clean` encuentra a los usuarios por su teléfono `carga-…`.
-- [`load-tests/queries.sql`](app/load-tests/queries.sql) tiene las consultas para el SQL editor:
-  reiniciar las estadísticas, ver las consultas más lentas y el plan del foro.
-- Las partes sin red (percentiles, errores, escenario y reloj) tienen pruebas en `npm test`.
-
-## Moderación
-
-La moderación se hace a mano con un servidor MCP (la Edge Function `moderacion`). Las revisiones
-automáticas (palabras de `private.flag_words`, enlaces, texto repetido y reportes) llenan una cola;
-quien modera la revisa y decide.
-
-### Publicar la función
-
-En el dashboard, **Edge Functions → Deploy a new function**, con el nombre `moderacion` y los
-archivos de `supabase/functions/moderacion/`. Desactiva **Verify JWT**: la función revisa su propio
-token de moderador.
-
-### Crear un moderador
-
-En el **SQL Editor**:
-
-```sql
-select private.create_moderator('Ana');
-```
-
-Devuelve el token **una sola vez**; en la base solo queda su hash. Para quitarle el acceso:
-
-```sql
-update private.moderators set disabled_at = now() where name = 'Ana';
-```
-
-### Conectarse
-
-Con Claude Code:
+Si prefieres generar y abrir una compilación nativa local (requiere Android SDK o Xcode):
 
 ```bash
-claude mcp add --transport http moderacion https://<ref>.supabase.co/functions/v1/moderacion \
-  --header "Authorization: Bearer <token>"
+cd app
+npx expo run:android
 ```
 
-También sirve el MCP Inspector (`npx @modelcontextprotocol/inspector`), sin IA. Herramientas:
-`ver_pendientes`, `ver_contenido`, `ver_autor`, `resumen`, `marcar_revisado`, `ocultar`,
-`restaurar`, `suspender`, `banear` y `quitar_ban`. Deja activada la aprobación de cada herramienta: el
-texto de los usuarios podría traer instrucciones, y todas menos las de lectura (`ver_*` y `resumen`)
-cambian lo que ve o puede hacer la gente. Una suspensión o un baneo alcanza también a los teléfonos
-que usó esa cuenta.
+En macOS para iOS:
 
-## Tipos de la base de datos
+```bash
+cd app
+npx expo run:ios
+```
 
-`app/src/lib/database.types.ts` sale del esquema. Después de cada migración, regenéralo desde el
-dashboard (**API Docs → TypeScript**) o con
-`npx supabase gen types typescript --remote=<ref> --schema public`.
+### 5. Verificación local
+
+Dentro de `app/`:
+
+```bash
+npm run lint
+npm run tsc
+npm test
+```
+
+## Releases
+
+Las versiones empaquetadas del proyecto están disponibles en la sección de [Releases](https://github.com/LuisEncinasAlegre/ForumMovil/releases) del repositorio.
+
+## Integrantes
+
+Universidad de Sonora  
+Ingeniería en Sistemas de Información  
+Desarrollo de Aplicaciones Móviles
+
+* Luis Fernando Encinas Alegre
+* José Diego Salgueiro Duarte
+* Benjamin Isaac Rivera Tapia
+* Sergio Alejandro Olivas Salazar
+* Alex Gabi José José
